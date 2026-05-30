@@ -275,6 +275,9 @@ function render(result) {
   const totalSpineLeafLinkTransceivers = Math.ceil(best.totalLeafUplinks / leafSpineLinkTwinFactor);
   const serverLeafTransceiverType = input.useTwinPort ? "Twin-port Transceiver 사용" : "일반 Transceiver 사용";
   const leafSpineTransceiverType = leafSpineLinkTwinFactor > 1 ? "Twin-port Transceiver 사용" : "일반 Transceiver 사용";
+  const leafSpineBalanceText = best.balancedLeafSpineLinks
+    ? `균등 (${best.spines}대 Spine에 각 ${best.uplinksPerLeaf / best.spines}개씩 연결)`
+    : `불균등 (Spine별 ${Math.floor(best.uplinksPerLeaf / best.spines)}~${Math.ceil(best.uplinksPerLeaf / best.spines)}개 연결)`;
 
   const details = [
     ...(input.useMultiPlanar ? [
@@ -309,6 +312,7 @@ function render(result) {
     ["전체 Spine 총 예비 포트", `${totalSpineUnusedPorts.toLocaleString()}개`],
     ["separator"],
     ["Leaf-Spine 연결 방식", `Leaf당 ${best.spines}대 Spine에 총 ${best.uplinksPerLeaf}개 업링크 분산`],
+    ["Leaf-Spine 링크 균등 여부", leafSpineBalanceText],
     ["Twin-port Transceiver 사용", input.useTwinPort ? "사용, 서버-Leaf 구간 적용" : "미사용"],
     ["Leaf-Spine 링크에 Twin-port Transceiver 사용", input.useTwinPort && input.disableUplinkTwinPort ? "미사용, 업링크 포트 속도 온전히 사용" : (input.useTwinPort ? "사용" : "미사용")],
     ["separator"],
@@ -558,6 +562,9 @@ function makeMessage({ input, best }) {
   }
   if (best.leafCount === best.switchPortCapacity) {
     parts.push("Spine 포트가 모두 Leaf 연결에 사용되므로 확장 여유가 거의 없습니다.");
+  }
+  if (!best.balancedLeafSpineLinks) {
+    parts.push(`Leaf-Spine 링크가 Spine별 ${Math.floor(best.uplinksPerLeaf / best.spines)}~${Math.ceil(best.uplinksPerLeaf / best.spines)}개로 불균등하게 분산됩니다.`);
   }
   return parts.join(" ");
 }
