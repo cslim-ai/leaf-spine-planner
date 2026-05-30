@@ -1,0 +1,6 @@
+.chrome-test/
+*.log
+*.tmp
+*.temp
+Thumbs.db
+.DS_Store

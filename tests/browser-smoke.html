@@ -2,6 +2,7 @@
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
+    <base href="../" />
     <title>Leaf-Spine Browser Smoke Test</title>
   </head>
   <body>
@@ -40,20 +41,31 @@
     <button id="zoomReset" type="button"></button>
     <button id="zoomCenter" type="button"></button>
     <button id="zoomFit" type="button"></button>
-    <button id="exportSvg" type="button"></button>
-    <button id="exportPng" type="button"></button>
-    <button id="exportPptx" type="button"></button>
+    <div id="topologyExportMenu">
+      <button id="exportDiagram" type="button"></button>
+      <div>
+        <button type="button" data-export-value="svg"></button>
+        <button type="button" data-export-value="png"></button>
+        <button type="button" data-export-value="ppt"></button>
+      </div>
+    </div>
     <button id="openPortMapWindow" type="button"></button>
-    <button id="exportPdf" type="button"></button>
+    <div id="reportExportMenu">
+      <button id="exportPdf" type="button"></button>
+      <div>
+        <button type="button" data-export-value="svg"></button>
+        <button type="button" data-export-value="pdf"></button>
+      </div>
+    </div>
     <button id="resetInputs" type="button"></button>
     <pre id="result">running</pre>
 
-    <script src="../calculator.js"></script>
-    <script src="../export-utils.js"></script>
-    <script src="../diagram.js"></script>
-    <script src="../report.js"></script>
-    <script src="../app.js"></script>
-    <script src="../portmap.js"></script>
+    <script src="assets/js/calculator.js"></script>
+    <script src="assets/js/export-utils.js"></script>
+    <script src="assets/js/diagram.js"></script>
+    <script src="assets/js/report.js"></script>
+    <script src="assets/js/app.js"></script>
+    <script src="assets/js/portmap.js"></script>
     <script>
       (async () => {
         const checks = [];
