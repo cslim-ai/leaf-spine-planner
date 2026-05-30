@@ -581,7 +581,7 @@ async function exportDiagramPptx(viewMode = diagramViewMode) {
 window.exportDiagramPptx = exportDiagramPptx;
 
 function buildPptxWithPptxGen(result, viewMode = diagramViewMode) {
-  const geometry = getDiagramGeometryForView(result, viewMode);
+  const geometry = diagramGeometryForView(result, viewMode);
   const pptx = new PptxGenJS();
   pptx.layout = "LAYOUT_WIDE";
   pptx.author = "임채성";
@@ -656,6 +656,12 @@ function buildPptxWithPptxGen(result, viewMode = diagramViewMode) {
   });
 
   return pptx;
+}
+
+function diagramGeometryForView(result, viewMode) {
+  if (viewMode === "wrapped") return getPptDiagramGeometry(result);
+  if (viewMode === "summary") return getSummaryDiagramGeometry(result);
+  return getDiagramGeometry(result);
 }
 
 function getPptDiagramGeometry({ input, best }) {
@@ -1610,8 +1616,8 @@ function corePropsXml() {
 }
 
 const LeafSpineDiagram = {
-  makeForView: (result, viewMode) => makeDiagramFromGeometry(getDiagramGeometryForView(result, viewMode)),
-  getGeometryForView: (result, viewMode) => getDiagramGeometryForView(result, viewMode),
+  makeForView: (result, viewMode) => makeDiagramFromGeometry(diagramGeometryForView(result, viewMode)),
+  getGeometryForView: (result, viewMode) => diagramGeometryForView(result, viewMode),
   exportPng: exportDiagramPng,
   exportSvg: exportDiagramSvg,
   exportPptx: exportDiagramPptx,
