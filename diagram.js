@@ -247,8 +247,8 @@ function openDiagramWindow() {
         <button id="zoomOut" type="button">-</button>
         <button id="zoomReset" type="button">100%</button>
         <button id="zoomIn" type="button">+</button>
-        <button id="zoomCenter" type="button" title="가운데 정렬" aria-label="가운데 정렬">◎</button>
-        <button id="zoomFit" type="button" title="화면에 맞춤" aria-label="화면에 맞춤">▣</button>
+        <button id="zoomCenter" type="button" title="가운데 정렬" aria-label="가운데 정렬">⨁</button>
+        <button id="zoomFit" type="button" title="화면에 맞춤" aria-label="화면에 맞춤">⇔</button>
         <button id="downloadSvg" type="button">SVG</button>
         <button id="downloadPng" type="button">PNG</button>
         <button id="downloadPpt" type="button">PPT</button>
