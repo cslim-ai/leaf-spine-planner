@@ -280,6 +280,30 @@ function withInput(overrides) {
 }
 
 {
+  const input = withInput({
+    serverLinkSpeed: 100,
+    useMultiPlanar: true,
+  });
+  const result = calculate(input);
+  assert(!result.feasible, "multi-planar should be infeasible below 200G node link speed");
+  assert(result.infeasibleReason.includes("최소 200 Gbps"), "infeasible reason should explain the node twin-port speed floor");
+  assertEqual(result.input.useTwinPort, true, "multi-planar infeasible result should still reflect forced node twin-port");
+}
+
+{
+  const input = withInput({
+    serverCount: 128,
+    serverLinkSpeed: 100,
+    useMultiPlanar: true,
+    useMultiPods: true,
+    podServerCount: 64,
+  });
+  const result = calculate(input);
+  assert(!result.feasible, "multi-pods plus multi-planar should also be infeasible below 200G node link speed");
+  assert(result.infeasibleReason.includes("노드 연결 포트당 링크 스피드"), "composed infeasible reason should identify node link speed");
+}
+
+{
   const input = withInput({ useTwinPort: true, switchLinkSpeed: 1600 });
   assertEqual(leafSpineTwinFactor(input), 2, "leaf-spine twin factor should use twin-port by default");
   assertEqual(leafSpineLeafTwinFactor(input), 2, "leaf-side leaf-spine twin factor should use leaf twin-port by default");

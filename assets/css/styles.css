@@ -241,6 +241,11 @@ select:focus {
   line-height: 1.55;
 }
 
+.node-twin-notice {
+  margin-top: -6px;
+  pointer-events: none;
+}
+
 .check-row {
   grid-template-columns: 18px 1fr;
   gap: 10px;

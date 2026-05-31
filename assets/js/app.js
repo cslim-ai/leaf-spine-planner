@@ -2,6 +2,7 @@ const form = document.querySelector("#networkForm");
 const modeInputs = [...document.querySelectorAll("input[name='topologyMode']")];
 const oversubField = document.querySelector("#oversubField");
 const podField = document.querySelector("#podField");
+const nodeTwinPortNotice = document.querySelector("#nodeTwinPortNotice");
 const twinPortLabel = document.querySelector("#twinPortLabel");
 const spineTwinPortLabel = document.querySelector("#spineTwinPortLabel");
 const {
@@ -72,6 +73,7 @@ const DEFAULT_DIAGRAM_VIEW_HEIGHT = 500;
 const DIAGRAM_LABEL_GUTTER = 0;
 const DIAGRAM_CONTENT_OFFSET = 96;
 let currentResult = null;
+let latestResult = null;
 let exportSequence = 0;
 const NIC_COLORS = [
   "#2563eb",
@@ -140,6 +142,7 @@ outputs.viewSummary.addEventListener("click", () => setDiagramViewMode("summary"
 outputs.openDiagramWindow.addEventListener("click", () => LeafSpineDiagram.openWindow());
 setupExportMenu(outputs.topologyExportMenu, outputs.exportDiagram, exportDiagramByFormat);
 outputs.openPortMapWindow.addEventListener("click", () => LeafSpinePortMap.openWindow());
+outputs.exportPdf.addEventListener("click", handleReportTriggerClick, true);
 setupExportMenu(outputs.reportExportMenu, outputs.exportPdf, (format) => LeafSpineReport.export(format));
 outputs.resetInputs.addEventListener("click", () => resetInputsToDefaults());
 document.addEventListener("click", () => closeExportMenus());
@@ -319,6 +322,11 @@ function syncSpineSwitchFields() {
 }
 
 function updateTwinPortLabel() {
+  if (nodeTwinPortNotice) {
+    const nodeSpeedTooLow = (Number.parseFloat(fields.serverLinkSpeed.value) || 0) < 200;
+    nodeTwinPortNotice.textContent = `Multi-planar Design 가이드에 따라 ${getTwinPortSpeedText(fields.serverLinkSpeed)} Twin-port Transceiver 적용`;
+    nodeTwinPortNotice.classList.toggle("hidden", !fields.useMultiPlanar.checked || nodeSpeedTooLow);
+  }
   if (!twinPortLabel) return;
   twinPortLabel.textContent = `${getTwinPortSpeedText(fields.switchLinkSpeed)} Twin-port Transceiver 사용`;
   if (spineTwinPortLabel) {
@@ -344,6 +352,7 @@ function toFloat(value) {
 }
 
 function render(result) {
+  latestResult = result;
   currentResult = result.feasible ? result : null;
   if (!result.feasible) {
     outputs.calculationStatus.classList.remove("hidden");
@@ -463,6 +472,15 @@ function render(result) {
   applyDiagramTransform();
   updateDiagramViewButtons();
   outputs.diagramCaption.textContent = "";
+}
+
+function handleReportTriggerClick(event) {
+  if (latestResult?.feasible === false) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    outputs.reportExportMenu.classList.remove("is-open");
+    alert("구성 불가 상태에서는 보고서를 생성할 수 없습니다. 입력값을 조정해 구성 가능한 결과가 나온 뒤 다시 시도해 주세요.");
+  }
 }
 
 function setDiagramViewMode(mode) {

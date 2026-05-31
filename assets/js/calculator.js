@@ -1,5 +1,15 @@
 const LeafSpineCalculator = (() => {
   function calculate(input) {
+    if (input.useMultiPlanar && input.serverLinkSpeed < 200) {
+      const activeNicPorts = activeServerNicPorts(input);
+      const totalServerLinks = input.serverCount * activeNicPorts * 2;
+      return infeasibleResult(
+        { ...input, useTwinPort: true, planeCount: 2 },
+        totalServerLinks,
+        `Multi-planar Design은 노드 연결 포트를 Twin-port Transceiver로 2분기해야 하므로 노드 연결 포트당 링크 스피드가 최소 200 Gbps 이상이어야 합니다. 현재 노드 연결 포트당 링크 스피드는 ${input.serverLinkSpeed.toLocaleString()} Gbps입니다.`,
+      );
+    }
+
     if (input.useMultiPods) {
       return calculateMultiPods(input);
     }
