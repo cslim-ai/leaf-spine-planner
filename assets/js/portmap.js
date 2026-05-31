@@ -149,15 +149,15 @@ function makePortMapHtml(portMap) {
   const rows = [...portMap.serverLeafRows, ...portMap.leafSpineRows];
   const maxRowsWithoutWarning = 12000;
   const warning = rows.length > maxRowsWithoutWarning
-    ? `<p class="notice">포트맵 행이 ${rows.length.toLocaleString()}개입니다. 브라우저에서 검색은 가능하지만, 대규모 구성에서는 표시가 다소 느릴 수 있습니다.</p>`
+    ? `<p class="notice">${escapeXml(tr("portMap.largeRowNotice", { rowCount: rows.length.toLocaleString() }))}</p>`
     : "";
   const serializedRows = JSON.stringify(rows);
   return `<!doctype html>
-<html lang="ko">
+<html lang="${currentLocale}">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Leaf-Spine Port Map</title>
+    <title>${escapeXml(tr("portMap.title"))}</title>
     <style>
       ${makeEmbeddedPretendardFontCss()}
       * { box-sizing: border-box; }
@@ -359,13 +359,13 @@ function makePortMapHtml(portMap) {
   <body>
     <header>
       <div class="title-lockup">
-        <h1>Leaf-Spine Port Map</h1>
-        <div class="credit">Created by 임채성</div>
+        <h1>${escapeXml(tr("portMap.title"))}</h1>
+        <div class="credit">${escapeXml(tr("meta.credit"))}</div>
       </div>
       <div class="actions">
         <div id="portMapExportMenu" class="export-menu">
-          <button id="exportPortMap" type="button">Export</button>
-          <div class="export-menu-list" role="menu" aria-label="포트맵 저장 형식">
+          <button id="exportPortMap" type="button">${escapeXml(tr("portMap.exportButton"))}</button>
+          <div class="export-menu-list" role="menu" aria-label="${escapeXml(tr("portMap.exportFormatAriaLabel"))}">
             <button type="button" data-export-value="excel">Excel</button>
             <button type="button" data-export-value="ppt">PPT</button>
           </div>
@@ -382,14 +382,14 @@ function makePortMapHtml(portMap) {
           <thead>
             <tr>
               <th>#</th>
-              <th>구간</th>
-              <th>Plane</th>
-              <th>출발 장비</th>
-              <th>출발 포트</th>
-              <th>도착 장비</th>
-              <th>도착 포트</th>
-              <th>속도</th>
-              <th>그룹</th>
+              <th>${escapeXml(tr("portMap.columns.segment"))}</th>
+              <th>${escapeXml(tr("portMap.columns.plane"))}</th>
+              <th>${escapeXml(tr("portMap.columns.fromDevice"))}</th>
+              <th>${escapeXml(tr("portMap.columns.fromPort"))}</th>
+              <th>${escapeXml(tr("portMap.columns.toDevice"))}</th>
+              <th>${escapeXml(tr("portMap.columns.toPort"))}</th>
+              <th>${escapeXml(tr("portMap.columns.speed"))}</th>
+              <th>${escapeXml(tr("portMap.columns.group"))}</th>
             </tr>
           </thead>
           <tbody id="portMapBody"></tbody>
@@ -445,7 +445,7 @@ function makePortMapHtml(portMap) {
       renderRowsChunk();
       function runExport(name, format) {
         if (!window.opener) {
-          alert("메인 페이지와 연결되어 있지 않아 export를 실행할 수 없습니다.");
+          alert(${JSON.stringify(tr("portMap.notConnectedAlert"))});
           return;
         }
         try {

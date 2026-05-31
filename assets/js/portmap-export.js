@@ -16,7 +16,7 @@ async function exportPortMapPpt() {
     downloadBlob(blob, exportFilename("leaf-spine-port-map", "pptx", generatedAt));
   } catch (error) {
     console.error(error);
-    alert("포트맵 PPT 파일을 만드는 중 오류가 발생했습니다.");
+    alert(typeof tr === "function" ? tr("portMap.pptError") : "포트맵 PPT 파일을 만드는 중 오류가 발생했습니다.");
   }
 }
 
@@ -28,7 +28,22 @@ function getPortMapRows(portMap) {
 }
 
 function portMapHeaders() {
-  return ["#", "구간", "Plane", "출발 장비", "출발 포트", "도착 장비", "도착 포트", "속도", "그룹"];
+  if (typeof tr !== "function") return ["#", "구간", "Plane", "출발 장비", "출발 포트", "도착 장비", "도착 포트", "속도", "그룹"];
+  return [
+    tr("portMap.columns.index"),
+    tr("portMap.columns.segment"),
+    tr("portMap.columns.plane"),
+    tr("portMap.columns.fromDevice"),
+    tr("portMap.columns.fromPort"),
+    tr("portMap.columns.toDevice"),
+    tr("portMap.columns.toPort"),
+    tr("portMap.columns.speed"),
+    tr("portMap.columns.group"),
+  ];
+}
+
+function portMapTr(path, params = {}) {
+  return typeof tr === "function" ? tr(path, params) : path;
 }
 
 function portMapRowValues(row, index) {
@@ -206,7 +221,7 @@ function addPortMapPptHeader(slide, pageNumber, pageCount, generatedAtText) {
     x: 0.35, y: 0.2, w: 2.6, h: 0.28,
     fontFace: "Arial", fontSize: 17, bold: true, color: "2563EB", margin: 0,
   });
-  slide.addText(`Created by 임채성 ${generatedAtText}`, {
+  slide.addText(`${portMapTr("meta.credit")} ${generatedAtText}`, {
     x: 0.5, y: 0.5, w: 2.48, h: 0.16,
     fontFace: "Arial", fontSize: 7.5, bold: true, color: "5B6B86", align: "right", margin: 0,
   });
@@ -282,7 +297,7 @@ function portMapSlideXml(portMap, chunk, pageNumber, pageCount) {
   shapes.push(pptRect(id++, 0, 0, slideW, slideH, "F8FBFF", "F8FBFF"));
   if (pageNumber === 1) {
     shapes.push(pptText(id++, inch(0.35), inch(0.2), inch(2.8), inch(0.32), "Leaf-Spine Port Map", "2563EB", 17, true));
-    shapes.push(pptText(id++, inch(1.42), inch(0.5), inch(1.55), inch(0.16), "Created by 임채성", "5B6B86", 7.5, true, "r"));
+    shapes.push(pptText(id++, inch(1.42), inch(0.5), inch(1.55), inch(0.16), portMapTr("meta.credit"), "5B6B86", 7.5, true, "r"));
     shapes.push(pptText(id++, inch(11.35), inch(0.32), inch(1.5), inch(0.2), `Page ${pageNumber} / ${pageCount}`, "5B6B86", 8, true, "r"));
     portMap.summary.forEach(([label, value], index) => {
       const x = 0.35 + index * 2.05;

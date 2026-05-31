@@ -74,6 +74,7 @@
     <button id="resetInputs" class="reset-inputs" type="button"></button>
     <pre id="result">running</pre>
 
+    <script src="assets/js/i18n.js"></script>
     <script src="assets/js/calculator.js"></script>
     <script src="assets/js/input-state.js"></script>
     <script src="assets/js/export-utils.js"></script>
@@ -121,20 +122,21 @@
         assert(currentResult && currentResult.feasible, "default calculation is feasible");
         assert(document.querySelector("#diagram svg"), "diagram SVG rendered");
 
-        const reportSvg = LeafSpineReport.makeSvg("2026-05-30 00:00:00");
+        const reportSvg = await LeafSpineReport.makeSvg("2026-05-30 00:00:00");
         assert(reportSvg.includes('width="1320"') && reportSvg.includes('height="1867"'), "report SVG keeps A4 portrait ratio");
 
         const portMap = LeafSpinePortMap.build(currentResult);
         assert(portMap.serverLeafRows.length === 64, "node-leaf port map rows generated");
         assert(portMap.leafSpineRows.length > 0, "leaf-spine port map rows generated");
-        const xlsxBlob = LeafSpinePortMap.buildXlsx(portMap);
+        const xlsxBlob = await LeafSpinePortMap.buildXlsx(portMap);
         assert(xlsxBlob.size > 0, "port map XLSX blob generated");
 
         await LeafSpineExportUtils.ensurePptxGenLoaded();
+        await LeafSpineExportUtils.ensureDiagramPptxExportLoaded();
         const topologyPptx = buildPptxWithPptxGen(currentResult, "summary");
         const topologyBlob = await topologyPptx.write({ outputType: "blob", compression: true });
         assert(topologyBlob.size > 0, "topology PPTX blob generated");
-        const portMapPptx = LeafSpinePortMap.buildPptx(portMap, "2026-05-30 00:00:00");
+        const portMapPptx = await LeafSpinePortMap.buildPptx(portMap, "2026-05-30 00:00:00");
         const portMapBlob = await portMapPptx.write({ outputType: "blob" });
         assert(portMapBlob.size > 0, "port map PPTX blob generated");
 

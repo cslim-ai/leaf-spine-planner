@@ -3,8 +3,17 @@ const LeafSpineDiagram = {
   makeForView: (result, viewMode) => makeDiagramFromGeometry(diagramGeometryForView(result, viewMode)),
   getGeometryForView: (result, viewMode) => diagramGeometryForView(result, viewMode),
   adjustLabelBadges,
-  exportPng: exportDiagramPng,
-  exportSvg: exportDiagramSvg,
-  exportPptx: exportDiagramPptx,
+  exportPng: async () => {
+    await LeafSpineExportUtils.ensureEmbeddedFontDataLoaded();
+    return exportDiagramPng();
+  },
+  exportSvg: async () => {
+    await LeafSpineExportUtils.ensureEmbeddedFontDataLoaded();
+    return exportDiagramSvg();
+  },
+  exportPptx: async (viewMode) => {
+    await LeafSpineExportUtils.ensureDiagramPptxExportLoaded();
+    return exportDiagramPptx(viewMode);
+  },
   openWindow: openDiagramWindow,
 };

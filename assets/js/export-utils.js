@@ -1,4 +1,5 @@
 let pptxGenLoadPromise = null;
+const dynamicScriptPromises = new Map();
 
 async function ensurePptxGenLoaded() {
   if (typeof PptxGenJS === "function") return;
@@ -23,6 +24,16 @@ function loadScriptWithFallback(localSrc, fallbackSrc) {
 }
 
 function loadScriptOnce(src) {
+  if (dynamicScriptPromises.has(src)) return dynamicScriptPromises.get(src);
+  const promise = loadScriptElementOnce(src).catch((error) => {
+    dynamicScriptPromises.delete(src);
+    throw error;
+  });
+  dynamicScriptPromises.set(src, promise);
+  return promise;
+}
+
+function loadScriptElementOnce(src) {
   return new Promise((resolve, reject) => {
     const existing = document.querySelector(`script[data-dynamic-src="${src}"]`);
     if (existing?.dataset.loaded === "true") {
@@ -48,6 +59,39 @@ function loadScriptOnce(src) {
   });
 }
 
+async function loadScriptsOnce(sources) {
+  for (const src of sources) {
+    await loadScriptOnce(src);
+  }
+}
+
+function ensureReportExportLoaded() {
+  return loadScriptsOnce([
+    "assets/js/report-font.js",
+    "assets/js/report.js",
+    "assets/js/report-layout.js",
+    "assets/js/report-pdf.js",
+  ]);
+}
+
+function ensureEmbeddedFontDataLoaded() {
+  return loadScriptOnce("assets/js/report-font.js");
+}
+
+function ensureDiagramPptxExportLoaded() {
+  return loadScriptOnce("assets/js/diagram-pptx.js");
+}
+
+function ensurePortMapExportLoaded() {
+  return loadScriptOnce("assets/js/portmap-export.js");
+}
+
 const LeafSpineExportUtils = {
   ensurePptxGenLoaded,
+  ensureEmbeddedFontDataLoaded,
+  ensureReportExportLoaded,
+  ensureDiagramPptxExportLoaded,
+  ensurePortMapExportLoaded,
+  loadScriptOnce,
+  loadScriptsOnce,
 };

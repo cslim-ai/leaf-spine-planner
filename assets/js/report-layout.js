@@ -1,4 +1,8 @@
 // Report SVG layout and canvas rendering helpers.
+function reportTr(path, params = {}) {
+  return typeof tr === "function" ? tr(path, params) : path;
+}
+
 async function renderReportCanvas(generatedAtText = formatDisplayTimestamp(new Date())) {
   const fontCss = await getEmbeddedReportFontCss();
   const svgText = makeReportSvg(generatedAtText, fontCss);
@@ -68,16 +72,16 @@ function makeReportSvg(generatedAtText = formatDisplayTimestamp(new Date()), emb
       <rect width="100%" height="100%" fill="#eef5ff"/>
       ${reportPanel(margin, margin, sidebarW, sidebarH)}
       <text class="title" x="${margin + sidebarW / 2}" y="${margin + 38 + titleOffsetY}">Leaf-Spine Planner</text>
-      <text class="label" x="${margin + sidebarW / 2}" y="${margin + 60 + titleOffsetY}" text-anchor="middle">Created by 임채성 ${escapeXml(generatedAtText)}</text>
+      <text class="label" x="${margin + sidebarW / 2}" y="${margin + 60 + titleOffsetY}" text-anchor="middle">${escapeXml(reportTr("meta.credit"))} ${escapeXml(generatedAtText)}</text>
       <line x1="${margin + 20}" y1="${sidebarDividerY}" x2="${margin + sidebarW - 20}" y2="${sidebarDividerY}" stroke="#c8d8ee" stroke-width="1"/>
       ${reportRows(sidebarRows, margin + 20, sidebarTopRowsY, sidebarW - 40)}
       ${metrics.map((item, index) => reportMetricCard(contentX + index * ((contentW - 36) / 4 + 12), margin, (contentW - 36) / 4, metricH, item)).join("")}
       ${reportPanel(contentX, margin + metricH + gap, contentW, detailH)}
-      <text class="panel-title" x="${contentX + 20}" y="${margin + metricH + gap + 32}">구성 결과</text>
+      <text class="panel-title" x="${contentX + 20}" y="${margin + metricH + gap + 32}">${escapeXml(reportTr("report.resultTitle"))}</text>
       <line x1="${contentX + 20}" y1="${margin + metricH + gap + 46}" x2="${contentX + contentW - 20}" y2="${margin + metricH + gap + 46}" stroke="#c8d8ee" stroke-width="1"/>
       ${reportDetailRows(detailRows, contentX + 20, margin + metricH + gap + detailContentOffset, contentW - 40, detailRowH, detailSeparatorH)}
       ${reportPanel(contentX, diagramY, contentW, diagramH)}
-      <text class="panel-title" x="${contentX + 20}" y="${diagramY + 32}">네트워크 구성도</text>
+      <text class="panel-title" x="${contentX + 20}" y="${diagramY + 32}">${escapeXml(reportTr("report.diagramTitle"))}</text>
       ${reportDiagramViewport(diagramViewportX, diagramViewportY, diagramViewportW, diagramViewportH)}
       <g transform="translate(${diagramViewportX} ${diagramViewportY})">${diagramSvg}</g>
     </svg>
@@ -250,30 +254,30 @@ function splitReportMessage(text, maxChars = 82) {
 
 function getReportInputRows() {
   return [
-    { type: "section", label: "노드" },
-    { label: "노드 수", value: fields.serverCount.value },
-    { label: "노드당 연결 포트 수", value: fields.serverNicPorts.value },
-    { label: "노드 연결 포트당 링크 스피드", value: `${fields.serverLinkSpeed.value} Gbps` },
+    { type: "section", label: reportTr("sidebar.nodeSection") },
+    { label: reportTr("sidebar.nodeCount"), value: fields.serverCount.value },
+    { label: reportTr("sidebar.nodeLinkPortCount"), value: fields.serverNicPorts.value },
+    { label: reportTr("sidebar.nodeLinkPortSpeed"), value: `${fields.serverLinkSpeed.value} Gbps` },
     ...(fields.useMultiPlanar.checked ? [{
-      label: "노드에 Twin-port Transceiver 사용",
-      value: `${getTwinPortSpeedText(fields.serverLinkSpeed)} 사용`,
+      label: reportTr("report.nodeTwinPortUsage"),
+      value: `${getTwinPortSpeedText(fields.serverLinkSpeed)} ${reportTr("common.use")}`,
     }] : []),
-    { type: "section", label: "스위치" },
+    { type: "section", label: reportTr("sidebar.switchSection") },
     { type: "subsection", label: "Leaf" },
-    { label: "Leaf당 포트 수", value: fields.switchPorts.value },
-    { label: "Leaf 포트당 링크 스피드", value: `${fields.switchLinkSpeed.value} Gbps` },
-    { label: "Leaf에 Twin-port Transceiver 사용", value: getReportLeafTwinUsageText() },
-    { label: "Leaf-Spine 링크에 Twin-port Transceiver 사용안함", value: fields.disableUplinkTwinPort.checked ? "사용" : "미사용" },
+    { label: reportTr("sidebar.leafPorts"), value: fields.switchPorts.value },
+    { label: reportTr("sidebar.leafLinkSpeed"), value: `${fields.switchLinkSpeed.value} Gbps` },
+    { label: reportTr("results.labels.leafTwinPortUsage"), value: getReportLeafTwinUsageText() },
+    { label: reportTr("sidebar.leafSpineDisableTwinPort"), value: fields.disableUplinkTwinPort.checked ? reportTr("common.use") : reportTr("common.unused") },
     { type: "subsection", label: "Spine" },
-    { label: "Leaf와 사양 같음", value: fields.spineSameAsLeaf.checked ? "사용" : "미사용" },
-    { label: "Spine당 포트 수", value: fields.spineSwitchPorts.value },
-    { label: "Spine 포트당 링크 스피드", value: `${fields.spineSwitchLinkSpeed.value} Gbps` },
-    { label: "Spine에 Twin-port Transceiver 사용", value: fields.spineUseTwinPort.checked ? `${getTwinPortSpeedText(fields.spineSwitchLinkSpeed)} 사용` : "미사용" },
-    { type: "section", label: "구성 방식" },
-    { label: "Topology", value: getMode() === "oversubscribed" ? "Oversubscribed" : "Non-blocking" },
-    { label: "Multi-planar Design", value: fields.useMultiPlanar.checked ? "사용" : "미사용" },
-    { label: "Multi-pods Design", value: fields.useMultiPods.checked ? "사용" : "미사용" },
-    ...(fields.useMultiPods.checked ? [{ label: "Pod당 노드 수", value: fields.podServerCount.value }] : []),
+    { label: reportTr("sidebar.spineSameAsLeaf"), value: fields.spineSameAsLeaf.checked ? reportTr("common.use") : reportTr("common.unused") },
+    { label: reportTr("sidebar.spinePorts"), value: fields.spineSwitchPorts.value },
+    { label: reportTr("sidebar.spineLinkSpeed"), value: `${fields.spineSwitchLinkSpeed.value} Gbps` },
+    { label: reportTr("results.labels.spineTwinPortUsage"), value: fields.spineUseTwinPort.checked ? `${getTwinPortSpeedText(fields.spineSwitchLinkSpeed)} ${reportTr("common.use")}` : reportTr("common.unused") },
+    { type: "section", label: reportTr("sidebar.topologySection") },
+    { label: reportTr("report.topology"), value: getMode() === "oversubscribed" ? "Oversubscribed" : "Non-blocking" },
+    { label: "Multi-planar Design", value: fields.useMultiPlanar.checked ? reportTr("common.use") : reportTr("common.unused") },
+    { label: "Multi-pods Design", value: fields.useMultiPods.checked ? reportTr("common.use") : reportTr("common.unused") },
+    ...(fields.useMultiPods.checked ? [{ label: reportTr("sidebar.podNodeCount"), value: fields.podServerCount.value }] : []),
   ];
 }
 
@@ -281,8 +285,8 @@ function getReportMetrics() {
   return [
     { label: "Leaf", value: outputs.leafCount.textContent },
     { label: "Spine", value: outputs.spineCount.textContent },
-    { label: "Oversub 비율", value: outputs.oversubRatio.textContent },
-    { label: "총 스위치", value: outputs.totalSwitches.textContent },
+    { label: reportTr("summary.oversubRatio"), value: outputs.oversubRatio.textContent },
+    { label: reportTr("summary.totalSwitches"), value: outputs.totalSwitches.textContent },
   ];
 }
 
@@ -291,7 +295,7 @@ function getReportLeafTwinUsageText() {
     const input = readInput();
     return getLeafTwinUsageText(input, LeafSpineCalculator.leafSpineLeafTwinFactor(input));
   }
-  return fields.useTwinPort.checked ? `${getTwinPortSpeedText(fields.switchLinkSpeed)} 사용` : "미사용";
+  return fields.useTwinPort.checked ? `${getTwinPortSpeedText(fields.switchLinkSpeed)} ${reportTr("common.use")}` : reportTr("common.unused");
 }
 
 function getReportDetailRows() {
@@ -384,7 +388,7 @@ async function makeSelectableReportPdf(generatedAtText = formatDisplayTimestamp(
   fillRect(0, 0, layout.pageWidth, layout.pageHeight, "EEF5FF");
   rect(layout.margin, layout.margin, layout.sidebarW, layout.sidebarH);
   text("Leaf-Spine Planner", layout.margin + 50, layout.margin + 38 + layout.titleOffsetY, 28, "2563EB");
-  text(`Created by 임채성 ${generatedAtText}`, layout.margin + layout.sidebarW / 2 - 92, layout.margin + 60 + layout.titleOffsetY, 12, "5B6B86");
+  text(`${reportTr("meta.credit")} ${generatedAtText}`, layout.margin + layout.sidebarW / 2 - 92, layout.margin + 60 + layout.titleOffsetY, 12, "5B6B86");
   line(layout.margin + 20, layout.sidebarDividerY, layout.margin + layout.sidebarW - 20, layout.sidebarDividerY);
   drawPdfRows(ops, layout.sidebarRows, layout.margin + 20, layout.sidebarTopRowsY, layout.sidebarW - 40, text);
 
@@ -398,12 +402,12 @@ async function makeSelectableReportPdf(generatedAtText = formatDisplayTimestamp(
 
   const detailY = layout.margin + layout.metricH + layout.gap;
   rect(layout.contentX, detailY, layout.contentW, layout.detailH);
-  text("구성 결과", layout.contentX + 20, detailY + 32, 17, "0F172A");
+  text(reportTr("report.resultTitle"), layout.contentX + 20, detailY + 32, 17, "0F172A");
   line(layout.contentX + 20, detailY + 46, layout.contentX + layout.contentW - 20, detailY + 46);
   drawPdfDetailRows(ops, layout.detailRows, layout.contentX + 20, detailY + layout.detailContentOffset, layout.contentW - 40, layout.detailRowH, layout.detailSeparatorH, layout.detailFontSize, text, line);
 
   rect(layout.contentX, layout.diagramY, layout.contentW, layout.diagramH);
-  text("네트워크 구성도", layout.contentX + 20, layout.diagramY + 32, 17, "0F172A");
+  text(reportTr("report.diagramTitle"), layout.contentX + 20, layout.diagramY + 32, 17, "0F172A");
 
   const diagramBlob = await renderDiagramJpeg(layout.contentW - 32, layout.diagramH - 68);
   const diagramBytes = new Uint8Array(await diagramBlob.arrayBuffer());

@@ -160,13 +160,26 @@ function openDiagramWindow() {
     wrapped: makeExportSvgDataFromMarkup(makeDiagramFromGeometry(getPptDiagramGeometry(currentResult))),
     summary: makeExportSvgDataFromMarkup(makeDiagramFromGeometry(getSummaryDiagramGeometry(currentResult))),
   };
+  const labels = {
+    locale: typeof currentLocale === "string" ? currentLocale : "ko",
+    title: typeof tr === "function" ? tr("diagram.title") : "네트워크 구성도",
+    viewFull: typeof tr === "function" ? tr("diagram.viewFull") : "전체",
+    viewWrapped: typeof tr === "function" ? tr("diagram.viewWrapped") : "줄바꿈",
+    viewSummary: typeof tr === "function" ? tr("diagram.viewSummary") : "요약",
+    center: typeof tr === "function" ? tr("diagram.center") : "가운데 정렬",
+    fitToScreen: typeof tr === "function" ? tr("diagram.fitToScreen") : "화면에 맞춤",
+    exportFormat: typeof tr === "function" ? tr("diagram.exportFormatAriaLabel") : "구성도 저장 형식",
+    exportButton: typeof tr === "function" ? tr("diagram.exportButton") : "Export",
+    portMapButton: typeof tr === "function" ? tr("diagram.portMapButton") : "Port Map",
+    portMapNotConnected: typeof tr === "function" ? tr("portMap.notConnectedAlert") : "메인 페이지와 연결되어 있지 않아 Port Map을 열 수 없습니다.",
+  };
   const initialView = diagramViewMode;
   const html = `<!doctype html>
-<html lang="ko">
+<html lang="${escapeXml(labels.locale)}">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Leaf-Spine 구성도</title>
+    <title>${escapeXml(labels.title)}</title>
     <style>
       ${makeEmbeddedPretendardFontCss()}
       * { box-sizing: border-box; }
@@ -213,9 +226,7 @@ function openDiagramWindow() {
       }
       button:hover { background: #dbeafe; }
       #viewFull,
-      #viewSummary {
-        width: 48px;
-      }
+      #viewSummary,
       #viewWrapped {
         width: 62px;
       }
@@ -317,36 +328,37 @@ function openDiagramWindow() {
   </head>
   <body>
     <div class="toolbar">
-      <strong>네트워크 구성도</strong>
+      <strong>${escapeXml(labels.title)}</strong>
       <div class="actions">
         <div class="control-group">
-          <button id="viewFull" type="button">전체</button>
-          <button id="viewWrapped" type="button">줄바꿈</button>
-          <button id="viewSummary" type="button">요약</button>
+          <button id="viewFull" type="button">${escapeXml(labels.viewFull)}</button>
+          <button id="viewWrapped" type="button">${escapeXml(labels.viewWrapped)}</button>
+          <button id="viewSummary" type="button">${escapeXml(labels.viewSummary)}</button>
         </div>
         <div class="control-group">
           <button id="zoomOut" type="button">-</button>
           <button id="zoomReset" type="button">100%</button>
           <button id="zoomIn" type="button">+</button>
-          <button id="zoomCenter" type="button" title="가운데 정렬" aria-label="가운데 정렬">⨁</button>
-          <button id="zoomFit" type="button" title="화면에 맞춤" aria-label="화면에 맞춤">⇔</button>
+          <button id="zoomCenter" type="button" title="${escapeXml(labels.center)}" aria-label="${escapeXml(labels.center)}">⨁</button>
+          <button id="zoomFit" type="button" title="${escapeXml(labels.fitToScreen)}" aria-label="${escapeXml(labels.fitToScreen)}">⇔</button>
         </div>
         <div class="control-group">
           <div id="downloadMenu" class="export-menu">
-            <button id="downloadExport" type="button">Export</button>
-            <div class="export-menu-list" role="menu" aria-label="구성도 저장 형식">
+            <button id="downloadExport" type="button">${escapeXml(labels.exportButton)}</button>
+            <div class="export-menu-list" role="menu" aria-label="${escapeXml(labels.exportFormat)}">
               <button type="button" data-export-value="svg">SVG</button>
               <button type="button" data-export-value="png">PNG</button>
               <button type="button" data-export-value="ppt">PPT</button>
             </div>
           </div>
-          <button id="openPortMap" type="button">Port Map</button>
+          <button id="openPortMap" type="button">${escapeXml(labels.portMapButton)}</button>
         </div>
       </div>
     </div>
     <div id="viewer" class="viewer"></div>
     <script>
       const variants = ${JSON.stringify(variants)};
+      const labels = ${JSON.stringify(labels)};
       const defaultViewWidth = 920;
       const defaultViewHeight = 500;
       const fitPadding = 24;
@@ -671,7 +683,7 @@ function openDiagramWindow() {
       setupExportMenu();
       document.querySelector("#openPortMap").addEventListener("click", () => {
         if (!window.opener) {
-          alert("메인 페이지와 연결되어 있지 않아 Port Map을 열 수 없습니다.");
+          alert(labels.portMapNotConnected);
           return;
         }
         try {
