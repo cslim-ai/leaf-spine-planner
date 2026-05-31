@@ -28,6 +28,10 @@ const LeafSpineCalculator = (() => {
     const minimumLeafs = 2;
     const minimumSpines = 2;
     const maxLeafs = maxLeafSwitches(input, totalServerLinks);
+    const customLeafCount = input.useCustomSwitchCounts ? Math.max(minimumLeafs, input.customLeafCount || minimumLeafs) : null;
+    const customSpineCount = input.useCustomSwitchCounts ? Math.max(minimumSpines, input.customSpineCount || minimumSpines) : null;
+    const leafStart = customLeafCount || minimumLeafs;
+    const leafEnd = customLeafCount || Math.max(maxLeafs, minimumLeafs);
     const candidates = [];
     const failureStats = {
       leafServerPortShortage: 0,
@@ -47,7 +51,7 @@ const LeafSpineCalculator = (() => {
       minRequiredSpinesForFullMesh: Number.POSITIVE_INFINITY,
     };
 
-    for (let leafCount = minimumLeafs; leafCount <= Math.max(maxLeafs, minimumLeafs); leafCount += 1) {
+    for (let leafCount = leafStart; leafCount <= leafEnd; leafCount += 1) {
       failureStats.checkedLeafs += 1;
       const downlinks = Math.ceil(totalServerLinks / leafCount);
       const physicalDownlinkPorts = Math.ceil(downlinks / serverLeafTwinFactor(input));
@@ -103,8 +107,19 @@ const LeafSpineCalculator = (() => {
         );
         continue;
       }
+      if (customSpineCount && (customSpineCount < minimumFeasibleSpines || customSpineCount > uplinksPerLeaf)) {
+        failureStats.spinePortShortage += 1;
+        failureStats.fullMeshShortage += 1;
+        failureStats.minRequiredSpinesForFullMesh = Math.min(
+          failureStats.minRequiredSpinesForFullMesh,
+          minimumFeasibleSpines,
+        );
+        continue;
+      }
       let spineCandidateFound = false;
-      for (let spines = minimumFeasibleSpines; spines <= uplinksPerLeaf; spines += 1) {
+      const spineStart = customSpineCount || minimumFeasibleSpines;
+      const spineEnd = customSpineCount || uplinksPerLeaf;
+      for (let spines = spineStart; spines <= spineEnd; spines += 1) {
         if (leafCount > spinePorts * spineUplinkTwinFactor * spines) {
           failureStats.fullMeshShortage += 1;
           failureStats.maxLeafCountForFullMesh = Math.max(failureStats.maxLeafCountForFullMesh, leafCount);

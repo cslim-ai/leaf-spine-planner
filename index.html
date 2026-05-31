@@ -10,117 +10,133 @@
   <body>
     <main class="app">
       <section class="workspace">
-        <form class="panel inputs" id="networkForm">
-          <div class="panel-header">
+        <aside class="sidebar">
+          <div class="panel panel-header">
             <div class="title-lockup">
               <p class="eyebrow">Leaf-Spine Planner</p>
               <span class="title-credit">Created by 임채성</span>
             </div>
           </div>
 
-          <div class="section-title">노드</div>
-          <label>
-            <span>노드 수</span>
-            <input id="serverCount" type="number" min="1" step="1" value="8" required />
-          </label>
-          <label>
-            <span>노드당 연결 포트 수</span>
-            <input id="serverNicPorts" type="number" min="1" step="1" value="8" required />
-          </label>
-          <label>
-            <span>노드 연결 포트당 링크 스피드</span>
-            <div class="inline-field">
-              <input id="serverLinkSpeed" type="number" min="1" step="1" value="400" required />
-              <span>Gbps</span>
-            </div>
-          </label>
-          <small id="nodeTwinPortNotice" class="field-note node-twin-notice hidden">Multi-planar Design 가이드에 따라 2x200 Gbps Twin-port Transceiver 적용</small>
-
-          <div class="section-title">스위치</div>
-          <div class="subsection-title">Leaf</div>
-          <label>
-            <span>Leaf당 포트 수</span>
-            <input id="switchPorts" type="number" min="2" step="1" value="64" required />
-          </label>
-          <label>
-            <span>Leaf 포트당 링크 스피드</span>
-            <div class="inline-field">
-              <input id="switchLinkSpeed" type="number" min="1" step="1" value="400" required />
-              <span>Gbps</span>
-            </div>
-          </label>
-          <label class="check-row">
-            <input id="useTwinPort" type="checkbox" />
-            <span id="twinPortLabel">2x200 Twin-port Transceiver 사용</span>
-          </label>
-          <label class="check-row sub-check-row">
-            <input id="disableUplinkTwinPort" type="checkbox" />
-            <span>Leaf-Spine 링크에 Twin-port Transceiver 사용안함</span>
-          </label>
-
-          <div class="subsection-title">Spine</div>
-          <label class="check-row">
-            <input id="spineSameAsLeaf" type="checkbox" checked />
-            <span>Leaf와 사양 같음</span>
-          </label>
-          <label>
-            <span>Spine당 포트 수</span>
-            <input id="spineSwitchPorts" type="number" min="2" step="1" value="64" required disabled />
-          </label>
-          <label>
-            <span>Spine 포트당 링크 스피드</span>
-            <div class="inline-field">
-              <input id="spineSwitchLinkSpeed" type="number" min="1" step="1" value="400" required disabled />
-              <span>Gbps</span>
-            </div>
-          </label>
-          <label class="check-row">
-            <input id="spineUseTwinPort" type="checkbox" />
-            <span id="spineTwinPortLabel">2x200 Twin-port Transceiver 사용</span>
-          </label>
-
-          <div class="section-title">구성 방식</div>
-          <div class="segmented" role="radiogroup" aria-label="구성 방식">
+          <form class="panel inputs" id="networkForm">
+            <div class="section-title">노드</div>
             <label>
-              <input type="radio" name="topologyMode" value="nonblocking" checked />
-              <span>Non-blocking</span>
+              <span>노드 수</span>
+              <input id="serverCount" type="number" min="1" step="1" value="8" required />
             </label>
             <label>
-              <input type="radio" name="topologyMode" value="oversubscribed" />
-              <span>Oversubscribed</span>
+              <span>노드당 연결 포트 수</span>
+              <input id="serverNicPorts" type="number" min="1" step="1" value="8" required />
             </label>
-          </div>
-          <label id="oversubField" class="hidden">
-            <span>목표 Oversub 비율</span>
-            <div class="inline-field">
-              <span>1 :</span>
-              <input id="targetOversub" type="number" min="1.1" step="0.1" value="3" />
-            </div>
-            <small class="field-note">노드 NIC는 모두 Leaf에 연결하고, Leaf-Spine 링크 수와 대역폭을 줄여 목표 1:n oversubscription을 맞춥니다.</small>
-          </label>
+            <label>
+              <span>노드 연결 포트당 링크 스피드</span>
+              <div class="inline-field">
+                <input id="serverLinkSpeed" type="number" min="1" step="1" value="400" required />
+                <span>Gbps</span>
+              </div>
+            </label>
+            <small id="nodeTwinPortNotice" class="field-note node-twin-notice hidden">Multi-planar Design 가이드에 따라 2x200 Gbps Twin-port Transceiver 적용</small>
 
-          <button type="submit">계산하기</button>
-          <div id="reportExportMenu" class="export-menu report-export">
-            <button id="exportPdf" class="save-report" type="button">보고서 생성</button>
-            <div class="export-menu-list" role="menu" aria-label="보고서 저장 형식">
-              <button type="button" data-export-value="svg">SVG</button>
-              <button type="button" data-export-value="pdf">PDF</button>
+            <div class="section-title section-title-with-action">
+              <span>스위치</span>
+              <label class="title-check">
+                <input id="useCustomSwitchCounts" type="checkbox" />
+                <span>Custom</span>
+              </label>
             </div>
-          </div>
-          <button id="resetInputs" class="reset-inputs" type="button">초기화</button>
-          <label class="check-row">
-            <input id="useMultiPlanar" type="checkbox" />
-            <span>Multi-planar Design 사용</span>
-          </label>
-          <label class="check-row">
-            <input id="useMultiPods" type="checkbox" />
-            <span>Multi-pods Design 사용</span>
-          </label>
-          <label id="podField" class="hidden">
-            <span>Pod당 노드 수</span>
-            <input id="podServerCount" type="number" min="1" step="1" value="64" />
-          </label>
-        </form>
+            <div class="subsection-title">Leaf</div>
+            <label id="customLeafCountField" class="hidden">
+              <span>Leaf 수</span>
+              <input id="customLeafCount" type="number" min="2" step="1" value="2" required />
+            </label>
+            <label>
+              <span>Leaf당 포트 수</span>
+              <input id="switchPorts" type="number" min="2" step="1" value="64" required />
+            </label>
+            <label>
+              <span>Leaf 포트당 링크 스피드</span>
+              <div class="inline-field">
+                <input id="switchLinkSpeed" type="number" min="1" step="1" value="400" required />
+                <span>Gbps</span>
+              </div>
+            </label>
+            <label class="check-row">
+              <input id="useTwinPort" type="checkbox" />
+              <span id="twinPortLabel">2x200 Twin-port Transceiver 사용</span>
+            </label>
+            <label class="check-row sub-check-row">
+              <input id="disableUplinkTwinPort" type="checkbox" />
+              <span>Leaf-Spine 링크에 Twin-port Transceiver 사용안함</span>
+            </label>
+
+            <div class="subsection-title">Spine</div>
+            <label id="customSpineCountField" class="hidden">
+              <span>Spine 수</span>
+              <input id="customSpineCount" type="number" min="2" step="1" value="2" required />
+            </label>
+            <label class="check-row">
+              <input id="spineSameAsLeaf" type="checkbox" checked />
+              <span>Leaf와 사양 같음</span>
+            </label>
+            <label>
+              <span>Spine당 포트 수</span>
+              <input id="spineSwitchPorts" type="number" min="2" step="1" value="64" required disabled />
+            </label>
+            <label>
+              <span>Spine 포트당 링크 스피드</span>
+              <div class="inline-field">
+                <input id="spineSwitchLinkSpeed" type="number" min="1" step="1" value="400" required disabled />
+                <span>Gbps</span>
+              </div>
+            </label>
+            <label class="check-row">
+              <input id="spineUseTwinPort" type="checkbox" />
+              <span id="spineTwinPortLabel">2x200 Twin-port Transceiver 사용</span>
+            </label>
+
+            <div class="section-title">구성 방식</div>
+            <div class="segmented" role="radiogroup" aria-label="구성 방식">
+              <label>
+                <input type="radio" name="topologyMode" value="nonblocking" checked />
+                <span>Non-blocking</span>
+              </label>
+              <label>
+                <input type="radio" name="topologyMode" value="oversubscribed" />
+                <span>Oversubscribed</span>
+              </label>
+            </div>
+            <label id="oversubField" class="hidden">
+              <span>목표 Oversub 비율</span>
+              <div class="inline-field">
+                <span>1 :</span>
+                <input id="targetOversub" type="number" min="1.1" step="0.1" value="3" />
+              </div>
+              <small class="field-note">노드 NIC는 모두 Leaf에 연결하고, Leaf-Spine 링크 수와 대역폭을 줄여 목표 1:n oversubscription을 맞춥니다.</small>
+            </label>
+
+            <button type="submit">계산하기</button>
+            <div id="reportExportMenu" class="export-menu report-export">
+              <button id="exportPdf" class="save-report" type="button">보고서 생성</button>
+              <div class="export-menu-list" role="menu" aria-label="보고서 저장 형식">
+                <button type="button" data-export-value="svg">SVG</button>
+                <button type="button" data-export-value="pdf">PDF</button>
+              </div>
+            </div>
+            <button id="resetInputs" class="reset-inputs" type="button">초기화</button>
+            <label class="check-row">
+              <input id="useMultiPlanar" type="checkbox" />
+              <span>Multi-planar Design 사용</span>
+            </label>
+            <label class="check-row">
+              <input id="useMultiPods" type="checkbox" />
+              <span>Multi-pods Design 사용</span>
+            </label>
+            <label id="podField" class="hidden">
+              <span>Pod당 노드 수</span>
+              <input id="podServerCount" type="number" min="1" step="1" value="64" />
+            </label>
+          </form>
+        </aside>
 
         <section class="results">
           <div class="summary-grid">
@@ -142,50 +158,52 @@
             </article>
           </div>
 
-          <article class="panel detail">
-            <div class="detail-title">
-              <h2>계산 결과</h2>
-              <span id="calculationStatus" class="status-badge hidden">구성 불가</span>
-            </div>
-            <dl id="detailList"></dl>
-            <p id="message" class="message"></p>
-          </article>
+          <div class="results-scroll">
+            <article class="panel detail">
+              <div class="detail-title">
+                <h2>계산 결과</h2>
+                <span id="calculationStatus" class="status-badge hidden">구성 불가</span>
+              </div>
+              <dl id="detailList"></dl>
+              <p id="message" class="message"></p>
+            </article>
 
-          <article class="panel diagram-panel">
-            <div class="diagram-title">
-              <div class="diagram-heading">
-                <h2>네트워크 구성도</h2>
-                <button id="openDiagramWindow" class="icon-button" type="button" title="새 창에서 보기" aria-label="새 창에서 보기">↗</button>
-              </div>
-              <div class="diagram-actions">
-                <span id="diagramCaption">입력 후 구성이 표시됩니다</span>
-                <div class="view-controls" aria-label="구성도 보기 방식">
-                  <button id="viewFull" type="button" data-view="full">전체</button>
-                  <button id="viewWrapped" type="button" data-view="wrapped">줄바꿈</button>
-                  <button id="viewSummary" type="button" data-view="summary">요약</button>
+            <article class="panel diagram-panel">
+              <div class="diagram-title">
+                <div class="diagram-heading">
+                  <h2>네트워크 구성도</h2>
+                  <button id="openDiagramWindow" class="icon-button" type="button" title="새 창에서 보기" aria-label="새 창에서 보기">↗</button>
                 </div>
-                <div class="zoom-controls" aria-label="구성도 확대 축소">
-                  <button id="zoomOut" type="button" title="축소">-</button>
-                  <button id="zoomReset" type="button" title="원래 크기">100%</button>
-                  <button id="zoomIn" type="button" title="확대">+</button>
-                  <button id="zoomCenter" type="button" title="가운데 정렬" aria-label="가운데 정렬">⨁</button>
-                  <button id="zoomFit" type="button" title="화면에 맞춤" aria-label="화면에 맞춤">⇔</button>
-                </div>
-                <div class="export-controls" aria-label="구성도 다운로드">
-                  <div id="topologyExportMenu" class="export-menu">
-                    <button id="exportDiagram" type="button">Export</button>
-                    <div class="export-menu-list" role="menu" aria-label="구성도 저장 형식">
-                      <button type="button" data-export-value="svg">SVG</button>
-                      <button type="button" data-export-value="png">PNG</button>
-                      <button type="button" data-export-value="ppt">PPT</button>
-                    </div>
+                <div class="diagram-actions">
+                  <span id="diagramCaption">입력 후 구성이 표시됩니다</span>
+                  <div class="view-controls" aria-label="구성도 보기 방식">
+                    <button id="viewFull" type="button" data-view="full">전체</button>
+                    <button id="viewWrapped" type="button" data-view="wrapped">줄바꿈</button>
+                    <button id="viewSummary" type="button" data-view="summary">요약</button>
                   </div>
-                  <button id="openPortMapWindow" type="button">Port Map</button>
+                  <div class="zoom-controls" aria-label="구성도 확대 축소">
+                    <button id="zoomOut" type="button" title="축소">-</button>
+                    <button id="zoomReset" type="button" title="원래 크기">100%</button>
+                    <button id="zoomIn" type="button" title="확대">+</button>
+                    <button id="zoomCenter" type="button" title="가운데 정렬" aria-label="가운데 정렬">⨁</button>
+                    <button id="zoomFit" type="button" title="화면에 맞춤" aria-label="화면에 맞춤">⇔</button>
+                  </div>
+                  <div class="export-controls" aria-label="구성도 다운로드">
+                    <div id="topologyExportMenu" class="export-menu">
+                      <button id="exportDiagram" type="button">Export</button>
+                      <div class="export-menu-list" role="menu" aria-label="구성도 저장 형식">
+                        <button type="button" data-export-value="svg">SVG</button>
+                        <button type="button" data-export-value="png">PNG</button>
+                        <button type="button" data-export-value="ppt">PPT</button>
+                      </div>
+                    </div>
+                    <button id="openPortMapWindow" type="button">Port Map</button>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div id="diagram" class="diagram" aria-label="Leaf-Spine topology diagram"></div>
-          </article>
+              <div id="diagram" class="diagram" aria-label="Leaf-Spine topology diagram"></div>
+            </article>
+          </div>
         </section>
       </section>
     </main>

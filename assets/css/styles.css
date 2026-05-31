@@ -116,6 +116,14 @@ body {
   min-height: 0;
 }
 
+.sidebar {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+}
+
 .panel,
 .metric {
   background: var(--panel);
@@ -134,9 +142,9 @@ body {
 }
 
 .panel-header {
+  padding: 20px;
   text-align: center;
 }
-
 .panel-header h1 {
   margin: 6px 0 4px;
   font-size: 25px;
@@ -155,6 +163,7 @@ body {
   font-weight: 900;
   letter-spacing: 0;
   line-height: 1.1;
+  white-space: nowrap;
 }
 
 .title-credit {
@@ -172,6 +181,33 @@ body {
   color: var(--accent-dark);
   font-size: 16px;
   font-weight: 900;
+}
+
+.section-title-with-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.title-check input {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+}
+
+.title-check span {
+  font-weight: 600;
 }
 
 .subsection-title {
@@ -361,22 +397,26 @@ button:hover {
 .results {
   max-height: 100%;
   min-height: 0;
-  overflow-y: auto;
-  padding-right: 4px;
+  overflow: hidden;
   overscroll-behavior: contain;
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 16px;
 }
 
+.results-scroll {
+  display: grid;
+  gap: 16px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+  overscroll-behavior: contain;
+}
+
 .summary-grid {
-  position: sticky;
-  top: 0;
-  z-index: 20;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  padding-bottom: 10px;
-  background: var(--bg);
 }
 
 .metric {
@@ -461,6 +501,10 @@ dd {
   font-weight: 750;
 }
 
+dd.is-warning {
+  color: #dc2626;
+}
+
 .detail-separator {
   grid-column: 1 / -1;
   height: 1px;
@@ -488,6 +532,11 @@ dd {
   color: var(--muted);
   font-size: 14px;
   line-height: 1.55;
+}
+
+.message.is-warning {
+  color: #b45309;
+  font-weight: 700;
 }
 
 .diagram-title {
@@ -861,6 +910,7 @@ svg {
   }
 
   .workspace,
+  .sidebar,
   .summary-grid {
     grid-template-columns: 1fr;
     height: auto;
@@ -874,6 +924,15 @@ svg {
   .inputs,
   .results {
     max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .results-scroll {
+    display: contents;
+  }
+
+  .results-scroll {
     overflow: visible;
     padding-right: 0;
   }
@@ -922,6 +981,11 @@ svg {
     height: auto;
   }
 
+  .sidebar {
+    display: block;
+    height: auto;
+  }
+
   .panel {
     break-inside: avoid;
     box-shadow: none;
@@ -932,6 +996,7 @@ svg {
   .inputs {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: none;
     gap: 6px 10px;
     margin-bottom: 8px;
     max-height: none;

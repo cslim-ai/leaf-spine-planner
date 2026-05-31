@@ -43,6 +43,29 @@ function withInput(overrides) {
 
 {
   const input = withInput({
+    useCustomSwitchCounts: true,
+    customLeafCount: 4,
+    customSpineCount: 2,
+  });
+  const result = calculate(input);
+  assert(result.feasible, "custom leaf/spine count should be validated as feasible when constraints fit");
+  assertEqual(result.best.leafCount, 4, "custom leaf count should be used exactly");
+  assertEqual(result.best.spines, 2, "custom spine count should be used exactly");
+}
+
+{
+  const input = withInput({
+    useCustomSwitchCounts: true,
+    customLeafCount: 2,
+    customSpineCount: 40,
+  });
+  const result = calculate(input);
+  assert(!result.feasible, "custom spine count should be infeasible when leaf uplinks cannot full-mesh to all spines");
+  assert(result.infeasibleReason.includes("Spine"), "custom infeasible reason should identify spine constraints");
+}
+
+{
+  const input = withInput({
     serverCount: 72,
     serverLinkSpeed: 800,
     switchPorts: 72,
