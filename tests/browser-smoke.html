@@ -4,9 +4,10 @@
     <meta charset="utf-8" />
     <base href="../" />
     <title>Leaf-Spine Browser Smoke Test</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
   </head>
   <body>
-    <form id="networkForm">
+    <form id="networkForm" class="panel inputs">
       <input id="serverCount" value="8" />
       <input id="serverNicPorts" value="8" />
       <input id="serverLinkSpeed" value="400" />
@@ -62,10 +63,19 @@
         <button type="button" data-export-value="pdf"></button>
       </div>
     </div>
-    <button id="resetInputs" type="button"></button>
+    <div id="inputTransferMenu">
+      <button id="importExportInputs" class="reset-inputs" type="button"></button>
+      <div>
+        <button type="button" data-export-value="export-json"></button>
+        <button type="button" data-export-value="import-json"></button>
+      </div>
+    </div>
+    <input id="importInputsFile" type="file" />
+    <button id="resetInputs" class="reset-inputs" type="button"></button>
     <pre id="result">running</pre>
 
     <script src="assets/js/calculator.js"></script>
+    <script src="assets/js/input-state.js"></script>
     <script src="assets/js/export-utils.js"></script>
     <script src="assets/js/diagram.js"></script>
     <script src="assets/js/report.js"></script>
@@ -83,6 +93,31 @@
         assert(typeof LeafSpineDiagram.exportSvg === "function", "diagram namespace is available");
         assert(typeof LeafSpineReport.makeSvg === "function", "report namespace is available");
         assert(typeof LeafSpinePortMap.build === "function", "port map namespace is available");
+        assert(document.querySelector("#importExportInputs"), "import/export inputs button is available");
+        assert(
+          Boolean(document.querySelector("#useMultiPlanar").compareDocumentPosition(document.querySelector("#importExportInputs")) & Node.DOCUMENT_POSITION_FOLLOWING),
+          "form action buttons follow dynamic configuration rows in DOM order"
+        );
+        document.querySelector("#useMultiPlanar").checked = true;
+        document.querySelector("#useMultiPlanar").dispatchEvent(new Event("change", { bubbles: true }));
+        const importExportButton = document.querySelector("#importExportInputs");
+        const importExportRect = importExportButton.getBoundingClientRect();
+        const importExportHitTarget = document.elementFromPoint(
+          importExportRect.left + importExportRect.width / 2,
+          importExportRect.top + importExportRect.height / 2
+        );
+        assert(importExportHitTarget === importExportButton, "import/export button remains the hit target after multi-planar toggle");
+        const segmented = document.querySelector(".segmented");
+        const oversubInput = document.querySelector("input[name='topologyMode'][value='oversubscribed']");
+        const segmentedRect = segmented.getBoundingClientRect();
+        const oversubRect = oversubInput.getBoundingClientRect();
+        assert(
+          oversubRect.left >= segmentedRect.left &&
+            oversubRect.right <= segmentedRect.right &&
+            oversubRect.top >= segmentedRect.top &&
+            oversubRect.bottom <= segmentedRect.bottom,
+          "oversubscribed radio hit area stays inside the segmented control"
+        );
         assert(currentResult && currentResult.feasible, "default calculation is feasible");
         assert(document.querySelector("#diagram svg"), "diagram SVG rendered");
 

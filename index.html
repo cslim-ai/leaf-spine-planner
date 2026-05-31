@@ -65,6 +65,10 @@
               <input id="useTwinPort" type="checkbox" />
               <span id="twinPortLabel">2x200 Twin-port Transceiver 사용</span>
             </label>
+            <label class="check-row sub-check-row">
+              <input id="disableUplinkTwinPort" type="checkbox" />
+              <span>Leaf-Spine 링크에 Twin-port Transceiver 사용안함</span>
+            </label>
             <div class="subsection-title">Spine</div>
             <label id="customSpineCountField" class="hidden">
               <span>Spine 수</span>
@@ -110,16 +114,6 @@
               <small class="field-note">노드 연결 포트는 모두 Leaf에 연결하고, Leaf-Spine 링크 수와 대역폭을 줄여 목표 1:n oversubscription을 맞춥니다.</small>
             </label>
 
-            <div class="form-actions-separator" aria-hidden="true"></div>
-            <button type="submit">구성하기</button>
-            <div id="reportExportMenu" class="export-menu report-export">
-              <button id="exportPdf" class="save-report" type="button">보고서 생성</button>
-              <div class="export-menu-list" role="menu" aria-label="보고서 저장 형식">
-                <button type="button" data-export-value="svg">SVG</button>
-                <button type="button" data-export-value="pdf">PDF</button>
-              </div>
-            </div>
-            <button id="resetInputs" class="reset-inputs" type="button">초기화</button>
             <label class="check-row">
               <input id="useMultiPlanar" type="checkbox" />
               <span>Multi-planar Design 사용</span>
@@ -132,6 +126,25 @@
                 <span>Pod당 노드 수</span>
                 <input id="podServerCount" type="number" min="1" step="1" value="64" />
               </label>
+
+            <div class="form-actions-separator" aria-hidden="true"></div>
+            <button type="submit">구성하기</button>
+            <div id="reportExportMenu" class="export-menu report-export">
+              <button id="exportPdf" class="save-report" type="button">보고서 생성</button>
+              <div class="export-menu-list" role="menu" aria-label="보고서 저장 형식">
+                <button type="button" data-export-value="svg">SVG</button>
+                <button type="button" data-export-value="pdf">PDF</button>
+              </div>
+            </div>
+            <div id="inputTransferMenu" class="export-menu input-transfer-menu">
+              <button id="importExportInputs" class="reset-inputs" type="button">내보내기/불러오기</button>
+              <div class="export-menu-list" role="menu" aria-label="입력값 내보내기 불러오기">
+                <button type="button" data-export-value="export-json">구성 값 내보내기(JSON)</button>
+                <button type="button" data-export-value="import-json">구성 값 불러오기(JSON)</button>
+              </div>
+            </div>
+            <input id="importInputsFile" class="hidden-file-input" type="file" accept="application/json,.json" />
+            <button id="resetInputs" class="reset-inputs" type="button">초기화</button>
             </form>
           </div>
         </aside>
@@ -207,6 +220,7 @@
     </main>
 
     <script src="assets/js/calculator.js"></script>
+    <script src="assets/js/input-state.js"></script>
     <script src="assets/js/export-utils.js"></script>
     <script src="assets/js/diagram.js"></script>
     <script src="assets/js/diagram-geometry.js"></script>

@@ -310,11 +310,17 @@ label:has(input:disabled) input {
 
 .segmented label {
   display: block;
+  position: relative;
 }
 
 .segmented input {
   position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
   opacity: 0;
+  cursor: pointer;
 }
 
 .segmented span {
@@ -327,6 +333,7 @@ label:has(input:disabled) input {
   color: var(--muted);
   font-size: 14px;
   font-weight: 800;
+  pointer-events: none;
 }
 
 .segmented input:checked + span {
@@ -355,19 +362,13 @@ button:hover {
 }
 
 .form-actions-separator {
-  order: 98;
   height: 0;
   margin-top: 8px;
   border-top: 1px solid var(--line);
 }
 
 .inputs button[type="submit"] {
-  order: 99;
   margin-top: 8px;
-}
-
-.report-export {
-  order: 100;
 }
 
 .save-report {
@@ -380,12 +381,31 @@ button:hover {
 }
 
 .reset-inputs {
-  order: 101;
+  display: block;
+  width: 100%;
   background: #64748b;
 }
 
 .reset-inputs:hover {
   background: #475569;
+}
+
+.input-transfer-menu .export-menu-list {
+  left: 0;
+  right: auto;
+  width: 100%;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+#resetInputs {
+  background: #dc2626;
+}
+
+#resetInputs:hover {
+  background: #b91c1c;
 }
 
 .results {
@@ -1017,6 +1037,7 @@ svg {
   .inputs h1,
   .inputs button[type="submit"],
   .report-export,
+  .input-transfer-menu,
   .reset-inputs,
   .diagram-actions,
   .icon-button {

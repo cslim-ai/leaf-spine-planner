@@ -244,10 +244,8 @@ const LeafSpineCalculator = (() => {
   }
 
   function leafSpineLeafTwinFactor(input) {
-    if (!input.spineUseTwinPort) return 1;
-    const leafSplitSpeed = leafSwitchLinkSpeed(input) / 2;
-    const spineLogicalSpeed = spineSwitchLinkSpeed(input) / leafSpineTwinFactor(input);
-    return speedsEqual(leafSplitSpeed, spineLogicalSpeed) ? 2 : 1;
+    if (input.disableUplinkTwinPort) return 1;
+    return input.useTwinPort ? 2 : 1;
   }
 
   function serverLeafTwinFactor(input) {

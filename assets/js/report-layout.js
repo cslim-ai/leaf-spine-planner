@@ -262,7 +262,8 @@ function getReportInputRows() {
     { type: "subsection", label: "Leaf" },
     { label: "Leaf당 포트 수", value: fields.switchPorts.value },
     { label: "Leaf 포트당 링크 스피드", value: `${fields.switchLinkSpeed.value} Gbps` },
-    { label: "Leaf에 Twin-port Transceiver 사용", value: fields.useTwinPort.checked ? `${getTwinPortSpeedText(fields.switchLinkSpeed)} 사용` : "미사용" },
+    { label: "Leaf에 Twin-port Transceiver 사용", value: getReportLeafTwinUsageText() },
+    { label: "Leaf-Spine 링크에 Twin-port Transceiver 사용안함", value: fields.disableUplinkTwinPort.checked ? "사용" : "미사용" },
     { type: "subsection", label: "Spine" },
     { label: "Leaf와 사양 같음", value: fields.spineSameAsLeaf.checked ? "사용" : "미사용" },
     { label: "Spine당 포트 수", value: fields.spineSwitchPorts.value },
@@ -283,6 +284,14 @@ function getReportMetrics() {
     { label: "Oversub 비율", value: outputs.oversubRatio.textContent },
     { label: "총 스위치", value: outputs.totalSwitches.textContent },
   ];
+}
+
+function getReportLeafTwinUsageText() {
+  if (typeof readInput === "function" && typeof getLeafTwinUsageText === "function") {
+    const input = readInput();
+    return getLeafTwinUsageText(input, LeafSpineCalculator.leafSpineLeafTwinFactor(input));
+  }
+  return fields.useTwinPort.checked ? `${getTwinPortSpeedText(fields.switchLinkSpeed)} 사용` : "미사용";
 }
 
 function getReportDetailRows() {
