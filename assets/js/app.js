@@ -30,7 +30,6 @@ const fields = {
   spineSwitchPorts: document.querySelector("#spineSwitchPorts"),
   spineSwitchLinkSpeed: document.querySelector("#spineSwitchLinkSpeed"),
   spineUseTwinPort: document.querySelector("#spineUseTwinPort"),
-  disableUplinkTwinPort: document.querySelector("#disableUplinkTwinPort"),
   targetOversub: document.querySelector("#targetOversub"),
   useMultiPlanar: document.querySelector("#useMultiPlanar"),
   useMultiPods: document.querySelector("#useMultiPods"),
@@ -73,6 +72,7 @@ const MAX_DIAGRAM_ZOOM = 10;
 const DIAGRAM_ZOOM_STEP = 0.05;
 const DEFAULT_DIAGRAM_VIEW_WIDTH = 920;
 const DEFAULT_DIAGRAM_VIEW_HEIGHT = 500;
+const DIAGRAM_FIT_PADDING = 24;
 const DIAGRAM_LABEL_GUTTER = 0;
 const DIAGRAM_CONTENT_OFFSET = 96;
 let currentResult = null;
@@ -108,12 +108,6 @@ const LEAF_COLORS = [
 modeInputs.forEach((input) => input.addEventListener("change", updateMode));
 fields.useMultiPlanar.addEventListener("change", updateMode);
 fields.useMultiPods.addEventListener("change", updateMode);
-fields.useTwinPort.addEventListener("change", () => {
-  if (fields.useTwinPort.checked && !fields.spineUseTwinPort.disabled) {
-    delete fields.spineUseTwinPort.dataset.userChanged;
-    fields.spineUseTwinPort.checked = true;
-  }
-});
 fields.spineUseTwinPort.addEventListener("change", () => {
   fields.spineUseTwinPort.dataset.userChanged = "1";
 });
@@ -226,9 +220,6 @@ function updateMode() {
   const mode = getMode();
   oversubField.classList.toggle("hidden", mode !== "oversubscribed");
   podField.classList.toggle("hidden", !fields.useMultiPods.checked);
-  if (fields.useMultiPlanar.checked) {
-    fields.useTwinPort.checked = true;
-  }
   updateTwinPortState();
 }
 
@@ -248,12 +239,13 @@ function readInput() {
     switchLinkSpeed: toFloat(fields.switchLinkSpeed.value),
     leafSwitchPorts: toInt(fields.switchPorts.value),
     leafSwitchLinkSpeed: toFloat(fields.switchLinkSpeed.value),
-    useTwinPort: fields.useMultiPlanar.checked || (fields.useTwinPort.checked && !fields.useTwinPort.disabled),
+    useNodeTwinPort: fields.useMultiPlanar.checked,
+    useTwinPort: fields.useTwinPort.checked && !fields.useTwinPort.disabled,
     spineSameAsLeaf: fields.spineSameAsLeaf.checked,
     spineSwitchPorts: toInt(fields.spineSameAsLeaf.checked ? fields.switchPorts.value : fields.spineSwitchPorts.value),
     spineSwitchLinkSpeed: toFloat(fields.spineSameAsLeaf.checked ? fields.switchLinkSpeed.value : fields.spineSwitchLinkSpeed.value),
     spineUseTwinPort: fields.spineUseTwinPort.checked && !fields.spineUseTwinPort.disabled,
-    disableUplinkTwinPort: fields.disableUplinkTwinPort.checked && !fields.disableUplinkTwinPort.disabled,
+    disableUplinkTwinPort: false,
     mode: getMode(),
     targetOversub: toFloat(fields.targetOversub.value),
     useMultiPlanar: fields.useMultiPlanar.checked,
@@ -277,7 +269,6 @@ function resetInputsToDefaults() {
   fields.spineSwitchLinkSpeed.value = "400";
   fields.spineUseTwinPort.checked = false;
   delete fields.spineUseTwinPort.dataset.userChanged;
-  fields.disableUplinkTwinPort.checked = false;
   fields.targetOversub.value = "3";
   fields.useMultiPlanar.checked = false;
   fields.useMultiPods.checked = false;
@@ -297,23 +288,14 @@ function updateTwinPortState() {
   syncSpineSwitchFields();
   const leafSpeed = Number.parseFloat(fields.switchLinkSpeed.value) || 0;
   const leafSpeedTooLow = leafSpeed < 200;
-  const leafTwinDisabled = leafSpeedTooLow || fields.useMultiPlanar.checked;
+  const leafTwinDisabled = leafSpeedTooLow;
   fields.useTwinPort.disabled = leafTwinDisabled;
-  if (fields.useMultiPlanar.checked) fields.useTwinPort.checked = true;
-  else if (leafSpeedTooLow) fields.useTwinPort.checked = false;
+  if (leafSpeedTooLow) fields.useTwinPort.checked = false;
   fields.useTwinPort.closest("label")?.classList.toggle("is-disabled", leafTwinDisabled);
 
-  const uplinkOptionDisabled = leafSpeedTooLow || !fields.useTwinPort.checked;
-  fields.disableUplinkTwinPort.disabled = uplinkOptionDisabled;
-  if (uplinkOptionDisabled) fields.disableUplinkTwinPort.checked = false;
-  fields.disableUplinkTwinPort.closest("label")?.classList.toggle("is-disabled", uplinkOptionDisabled);
-
   const spineSpeed = Number.parseFloat(fields.spineSwitchLinkSpeed.value) || 0;
-  const spineTwinDisabled = spineSpeed < 200 || fields.disableUplinkTwinPort.checked;
+  const spineTwinDisabled = leafSpeed < 200 || spineSpeed < 200;
   fields.spineUseTwinPort.disabled = spineTwinDisabled;
-  if (fields.useTwinPort.checked && !spineTwinDisabled && !fields.spineUseTwinPort.checked && !fields.spineUseTwinPort.dataset.userChanged) {
-    fields.spineUseTwinPort.checked = true;
-  }
   if (spineTwinDisabled) fields.spineUseTwinPort.checked = false;
   fields.spineUseTwinPort.closest("label")?.classList.toggle("is-disabled", spineTwinDisabled);
 
@@ -408,9 +390,7 @@ function render(result) {
   const spineLeafLinkTransceivers = Math.ceil(best.logicalLinksPerSpine / leafSpineLinkTwinFactor);
   const totalSpineLeafLinkTransceivers = Math.ceil(best.totalLeafUplinks / leafSpineLinkTwinFactor);
   const serverLeafTransceiverType = input.useTwinPort ? "Twin-port Transceiver 사용" : "일반 Transceiver 사용";
-  const leafTwinUsageText = input.useTwinPort
-    ? (input.disableUplinkTwinPort ? "사용, 노드-Leaf 구간만 적용" : "사용, 노드-Leaf 및 Leaf-Spine 구간 적용")
-    : "미사용";
+  const leafTwinUsageText = input.useTwinPort ? "사용, 노드-Leaf 구간 적용" : "미사용";
   const leafUplinkTransceiverType = leafSpineLeafLinkTwinFactor > 1 ? "Twin-port Transceiver 사용" : "일반 Transceiver 사용";
   const spineTransceiverType = leafSpineLinkTwinFactor > 1 ? "Twin-port Transceiver 사용" : "일반 Transceiver 사용";
   const spineSwitchPortCapacity = best.spineSwitchPortCapacity || best.switchPortCapacity;
@@ -570,12 +550,16 @@ function centerDiagramView() {
 function fitDiagramView() {
   const svg = outputs.diagram.querySelector("svg");
   if (!svg) return;
-  const baseWidth = Number(svg.dataset.baseWidth) || DEFAULT_DIAGRAM_VIEW_WIDTH;
-  const baseHeight = Number(svg.dataset.baseHeight) || DEFAULT_DIAGRAM_VIEW_HEIGHT;
-  const viewWidth = Math.min(DEFAULT_DIAGRAM_VIEW_WIDTH, baseWidth);
-  const viewHeight = Math.min(DEFAULT_DIAGRAM_VIEW_HEIGHT, baseHeight);
-  diagramZoom = Math.min(MAX_DIAGRAM_ZOOM, Math.max(MIN_DIAGRAM_ZOOM, Math.min(viewWidth / baseWidth, viewHeight / baseHeight)));
-  diagramPan = getCenteredDiagramPan(svg);
+  const viewport = getDiagramViewportSize(svg);
+  const bounds = getDiagramContentBounds(svg);
+  const targetWidth = Math.max(1, bounds.width + DIAGRAM_FIT_PADDING * 2);
+  const targetHeight = Math.max(1, bounds.height + DIAGRAM_FIT_PADDING * 2);
+  diagramZoom = Math.min(MAX_DIAGRAM_ZOOM, Math.max(MIN_DIAGRAM_ZOOM, Math.min(viewport.width / targetWidth, viewport.height / targetHeight)));
+  const viewBox = getDiagramViewBox(svg);
+  diagramPan = {
+    x: bounds.x + bounds.width / 2 - viewBox.width / 2,
+    y: bounds.y + bounds.height / 2 - viewBox.height / 2,
+  };
   applyDiagramTransform();
 }
 
@@ -640,14 +624,43 @@ function clampViewBoxAxis(value, visible, total) {
 }
 
 function getDiagramViewBox(svg) {
+  const viewport = getDiagramViewportSize(svg);
+  return {
+    width: viewport.width / diagramZoom,
+    height: viewport.height / diagramZoom,
+  };
+}
+
+function getDiagramViewportSize(svg) {
   const baseWidth = Number(svg.dataset.baseWidth) || DEFAULT_DIAGRAM_VIEW_WIDTH;
   const baseHeight = Number(svg.dataset.baseHeight) || DEFAULT_DIAGRAM_VIEW_HEIGHT;
-  const viewWidth = Math.min(DEFAULT_DIAGRAM_VIEW_WIDTH, baseWidth);
-  const viewHeight = Math.min(DEFAULT_DIAGRAM_VIEW_HEIGHT, baseHeight);
+  const rect = svg.getBoundingClientRect();
+  let viewWidth = Math.min(DEFAULT_DIAGRAM_VIEW_WIDTH, baseWidth);
+  let viewHeight = Math.min(DEFAULT_DIAGRAM_VIEW_HEIGHT, baseHeight);
+  const aspect = rect.width > 0 && rect.height > 0 ? rect.width / rect.height : viewWidth / viewHeight;
+  if (Number.isFinite(aspect) && aspect > 0) {
+    if (viewWidth / viewHeight < aspect) {
+      viewWidth = Math.max(viewWidth, viewHeight * aspect);
+    } else if (viewWidth / viewHeight > aspect) {
+      viewHeight = Math.max(viewHeight, viewWidth / aspect);
+    }
+  }
   return {
-    width: viewWidth / diagramZoom,
-    height: viewHeight / diagramZoom,
+    width: viewWidth,
+    height: viewHeight,
   };
+}
+
+function getDiagramContentBounds(svg) {
+  const baseWidth = Number(svg.dataset.baseWidth) || DEFAULT_DIAGRAM_VIEW_WIDTH;
+  const baseHeight = Number(svg.dataset.baseHeight) || DEFAULT_DIAGRAM_VIEW_HEIGHT;
+  try {
+    const bbox = svg.getBBox();
+    if (bbox.width > 0 && bbox.height > 0) return bbox;
+  } catch (error) {
+    // Some browser states can reject getBBox before the SVG is fully laid out.
+  }
+  return { x: 0, y: 0, width: baseWidth, height: baseHeight };
 }
 
 function getCenteredDiagramPan(svg) {
@@ -723,7 +736,7 @@ function makeMessage({ input, best }) {
       parts.push(`Multi-pods design으로 Pod당 노드 ${best.podServerCount}대 기준 ${best.multiPodCount}개의 독립 pod를 계산했습니다.`);
     }
     if (input.useMultiPlanar) {
-      parts.push("Multi-planar design으로 각 pod 또는 전체 fabric을 2개의 독립 plane으로 구성했습니다. 노드 NIC 포트는 Twin-port Transceiver로 논리 분리되어 각 plane에 연결됩니다.");
+      parts.push("Multi-planar design으로 각 pod 또는 전체 fabric을 2개의 독립 plane으로 구성했습니다. 노드 연결 포트는 Twin-port Transceiver로 논리 분리되어 각 plane에 연결됩니다.");
     }
   } else if (input.mode === "nonblocking") {
     parts.push("Non-blocking 조건으로 Leaf의 업링크 대역폭이 다운링크 대역폭 이상이 되도록 계산했습니다.");
@@ -732,7 +745,7 @@ function makeMessage({ input, best }) {
   }
   const leafPortSpeed = input.leafSwitchLinkSpeed || input.switchLinkSpeed;
   if (input.serverLinkSpeed > leafPortSpeed) {
-    parts.push("노드 링크 스피드가 Leaf 포트 스피드보다 높아 실제 구성에서는 포트 호환성을 별도로 확인해야 합니다.");
+    parts.push("노드 연결 포트당 링크 스피드가 Leaf 포트당 링크 스피드보다 높아 실제 구성에서는 포트 호환성을 별도로 확인해야 합니다.");
   }
   if (shouldWarnLeafTwinPortEfficiency(input, leafPortSpeed)) {
     parts.push("Leaf 포트당 링크 스피드가 노드 연결 포트당 링크 스피드보다 높고 Leaf에 Twin-port Transceiver를 사용하지 않아 Leaf 포트 대역폭이 낭비될 수 있습니다.");
@@ -766,8 +779,6 @@ function getLeafSpinePortEfficiencyWarning(input, best) {
       name: "Leaf-Spine 구간에 Twin-port Transceiver를 적용하면",
       input: {
         ...input,
-        useTwinPort: true,
-        disableUplinkTwinPort: false,
         spineUseTwinPort: true,
       },
     });
@@ -778,7 +789,6 @@ function getLeafSpinePortEfficiencyWarning(input, best) {
       name: "Leaf-Spine 구간에 Twin-port Transceiver를 사용하지 않으면",
       input: {
         ...input,
-        disableUplinkTwinPort: true,
         spineUseTwinPort: false,
       },
     });

@@ -1,7 +1,7 @@
 // A4 one-page report SVG export helpers.
 // This file uses app globals at click time and diagram SVG helpers from diagram.js.
 
-const REPORT_FONT_URL = "assets/fonts/Pretendard-Regular.ttf";
+const REPORT_FONT_BASE_PATH = "assets/fonts/Pretendard-1.3.9/web/static/woff2-subset";
 let reportFontCssPromise = null;
 
 async function exportPagePdf() {
@@ -56,63 +56,42 @@ function getEmbeddedReportFontCss() {
       .then((urls) => `
         @font-face {
           font-family: "Pretendard";
-          src: url("${urls.thin}") format("truetype");
-          font-weight: 100;
-          font-style: normal;
-          font-display: block;
-        }
-        @font-face {
-          font-family: "Pretendard";
-          src: url("${urls.extraLight}") format("truetype");
-          font-weight: 200;
-          font-style: normal;
-          font-display: block;
-        }
-        @font-face {
-          font-family: "Pretendard";
-          src: url("${urls.light}") format("truetype");
-          font-weight: 300;
-          font-style: normal;
-          font-display: block;
-        }
-        @font-face {
-          font-family: "Pretendard";
-          src: url("${urls.regular}") format("truetype");
+          src: url("${urls.regular}") format("woff2");
           font-weight: 400;
           font-style: normal;
           font-display: block;
         }
         @font-face {
           font-family: "Pretendard";
-          src: url("${urls.medium}") format("truetype");
+          src: url("${urls.medium}") format("woff2");
           font-weight: 500;
           font-style: normal;
           font-display: block;
         }
         @font-face {
           font-family: "Pretendard";
-          src: url("${urls.semiBold}") format("truetype");
+          src: url("${urls.semiBold}") format("woff2");
           font-weight: 600;
           font-style: normal;
           font-display: block;
         }
         @font-face {
           font-family: "Pretendard";
-          src: url("${urls.bold}") format("truetype");
+          src: url("${urls.bold}") format("woff2");
           font-weight: 700;
           font-style: normal;
           font-display: block;
         }
         @font-face {
           font-family: "Pretendard";
-          src: url("${urls.extraBold}") format("truetype");
+          src: url("${urls.extraBold}") format("woff2");
           font-weight: 800;
           font-style: normal;
           font-display: block;
         }
         @font-face {
           font-family: "Pretendard";
-          src: url("${urls.black}") format("truetype");
+          src: url("${urls.black}") format("woff2");
           font-weight: 900;
           font-style: normal;
           font-display: block;
@@ -126,18 +105,15 @@ async function getReportFontDataUrls() {
   if (window.LEAF_SPINE_FONT_DATA_URLS) {
     return window.LEAF_SPINE_FONT_DATA_URLS;
   }
-  const [thin, extraLight, light, regular, medium, semiBold, bold, extraBold, black] = await Promise.all([
-    fetchReportFontDataUrl("assets/fonts/Pretendard-Thin.ttf"),
-    fetchReportFontDataUrl("assets/fonts/Pretendard-ExtraLight.ttf"),
-    fetchReportFontDataUrl("assets/fonts/Pretendard-Light.ttf"),
-    fetchReportFontDataUrl(REPORT_FONT_URL),
-    fetchReportFontDataUrl("assets/fonts/Pretendard-Medium.ttf"),
-    fetchReportFontDataUrl("assets/fonts/Pretendard-SemiBold.ttf"),
-    fetchReportFontDataUrl("assets/fonts/Pretendard-Bold.ttf"),
-    fetchReportFontDataUrl("assets/fonts/Pretendard-ExtraBold.ttf"),
-    fetchReportFontDataUrl("assets/fonts/Pretendard-Black.ttf"),
+  const [regular, medium, semiBold, bold, extraBold, black] = await Promise.all([
+    fetchReportFontDataUrl(`${REPORT_FONT_BASE_PATH}/Pretendard-Regular.subset.woff2`),
+    fetchReportFontDataUrl(`${REPORT_FONT_BASE_PATH}/Pretendard-Medium.subset.woff2`),
+    fetchReportFontDataUrl(`${REPORT_FONT_BASE_PATH}/Pretendard-SemiBold.subset.woff2`),
+    fetchReportFontDataUrl(`${REPORT_FONT_BASE_PATH}/Pretendard-Bold.subset.woff2`),
+    fetchReportFontDataUrl(`${REPORT_FONT_BASE_PATH}/Pretendard-ExtraBold.subset.woff2`),
+    fetchReportFontDataUrl(`${REPORT_FONT_BASE_PATH}/Pretendard-Black.subset.woff2`),
   ]);
-  return { thin, extraLight, light, regular, medium, semiBold, bold, extraBold, black };
+  return { regular, medium, semiBold, bold, extraBold, black };
 }
 
 async function fetchReportFontDataUrl(url) {

@@ -4,7 +4,7 @@ const LeafSpineCalculator = (() => {
       const activeNicPorts = activeServerNicPorts(input);
       const totalServerLinks = input.serverCount * activeNicPorts * 2;
       return infeasibleResult(
-        { ...input, useTwinPort: true, planeCount: 2 },
+        { ...input, useNodeTwinPort: true, planeCount: 2 },
         totalServerLinks,
         `Multi-planar Design은 노드 연결 포트를 Twin-port Transceiver로 2분기해야 하므로 노드 연결 포트당 링크 스피드가 최소 200 Gbps 이상이어야 합니다. 현재 노드 연결 포트당 링크 스피드는 ${input.serverLinkSpeed.toLocaleString()} Gbps입니다.`,
       );
@@ -240,12 +240,11 @@ const LeafSpineCalculator = (() => {
   }
 
   function leafSpineTwinFactor(input) {
-    const spineTwin = input.spineUseTwinPort ?? input.useTwinPort;
-    return spineTwin && !input.disableUplinkTwinPort ? 2 : 1;
+    return input.spineUseTwinPort ? 2 : 1;
   }
 
   function leafSpineLeafTwinFactor(input) {
-    return input.useTwinPort && !input.disableUplinkTwinPort ? 2 : 1;
+    return input.spineUseTwinPort ? 2 : 1;
   }
 
   function serverLeafTwinFactor(input) {
@@ -339,7 +338,7 @@ const LeafSpineCalculator = (() => {
     const podInput = {
       ...input,
       useMultiPlanar: false,
-      useTwinPort: true,
+      useNodeTwinPort: true,
       serverCount: input.serverCount,
       serverLinkSpeed: input.serverLinkSpeed / planeCount,
     };
@@ -349,7 +348,7 @@ const LeafSpineCalculator = (() => {
 
     if (!podResult.feasible) {
       return infeasibleResult(
-        { ...input, useTwinPort: true, podServerCount, podCount: planeCount, planeCount },
+        { ...input, useNodeTwinPort: true, podServerCount, podCount: planeCount, planeCount },
         totalServerLinks,
         `Plane당 노드 ${podServerCount.toLocaleString()}대 기준 구성이 불가능합니다.\n${podResult.infeasibleReason || ""}`.trim(),
       );
@@ -373,7 +372,7 @@ const LeafSpineCalculator = (() => {
     };
 
     return {
-      input: { ...input, useTwinPort: true, podServerCount, podCount: planeCount, planeCount },
+      input: { ...input, useNodeTwinPort: true, podServerCount, podCount: planeCount, planeCount },
       totalServerLinks,
       serverBandwidth: activeNicPorts * input.serverLinkSpeed,
       totalServerBandwidth: input.serverCount * activeNicPorts * input.serverLinkSpeed,
@@ -426,7 +425,7 @@ const LeafSpineCalculator = (() => {
     };
 
     return {
-      input: { ...podResult.input, ...input, useTwinPort: input.useMultiPlanar || input.useTwinPort, podServerCount, podCount: groupCount, multiPodCount, planeCount },
+      input: { ...podResult.input, ...input, useNodeTwinPort: input.useMultiPlanar || input.useNodeTwinPort, podServerCount, podCount: groupCount, multiPodCount, planeCount },
       totalServerLinks,
       serverBandwidth: activeNicPorts * input.serverLinkSpeed,
       totalServerBandwidth: input.serverCount * activeNicPorts * input.serverLinkSpeed,

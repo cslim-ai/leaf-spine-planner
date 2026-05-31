@@ -20,15 +20,16 @@ function makeReportSvg(generatedAtText = formatDisplayTimestamp(new Date()), emb
   const pageHeight = 1867;
   const margin = 20;
   const gap = 18;
-  const sidebarW = 340;
+  const sidebarW = 380;
   const contentX = margin + sidebarW + gap;
   const contentW = pageWidth - contentX - margin;
   const sidebarRows = getReportInputRows();
   const detailRows = getReportDetailRows();
   const metrics = getReportMetrics();
-  const sidebarDividerY = margin + 80;
-  const sidebarTopRowsY = margin + 108;
-  const sidebarH = 126 + reportRowsHeight(sidebarRows);
+  const titleOffsetY = 10;
+  const sidebarDividerY = margin + 80 + titleOffsetY;
+  const sidebarTopRowsY = margin + 108 + titleOffsetY;
+  const sidebarH = 126 + titleOffsetY + reportRowsHeight(sidebarRows);
   const metricH = 92;
   const minDiagramH = 420;
   const detailContentOffset = 76;
@@ -66,8 +67,8 @@ function makeReportSvg(generatedAtText = formatDisplayTimestamp(new Date()), emb
       </style>
       <rect width="100%" height="100%" fill="#eef5ff"/>
       ${reportPanel(margin, margin, sidebarW, sidebarH)}
-      <text class="title" x="${margin + sidebarW / 2}" y="${margin + 38}">Leaf-Spine Planner</text>
-      <text class="label" x="${margin + sidebarW / 2}" y="${margin + 60}" text-anchor="middle">Created by 임채성 ${escapeXml(generatedAtText)}</text>
+      <text class="title" x="${margin + sidebarW / 2}" y="${margin + 38 + titleOffsetY}">Leaf-Spine Planner</text>
+      <text class="label" x="${margin + sidebarW / 2}" y="${margin + 60 + titleOffsetY}" text-anchor="middle">Created by 임채성 ${escapeXml(generatedAtText)}</text>
       <line x1="${margin + 20}" y1="${sidebarDividerY}" x2="${margin + sidebarW - 20}" y2="${sidebarDividerY}" stroke="#c8d8ee" stroke-width="1"/>
       ${reportRows(sidebarRows, margin + 20, sidebarTopRowsY, sidebarW - 40)}
       ${metrics.map((item, index) => reportMetricCard(contentX + index * ((contentW - 36) / 4 + 12), margin, (contentW - 36) / 4, metricH, item)).join("")}
@@ -374,8 +375,8 @@ async function makeSelectableReportPdf(generatedAtText = formatDisplayTimestamp(
 
   fillRect(0, 0, layout.pageWidth, layout.pageHeight, "EEF5FF");
   rect(layout.margin, layout.margin, layout.sidebarW, layout.sidebarH);
-  text("Leaf-Spine Planner", layout.margin + 50, layout.margin + 38, 28, "2563EB");
-  text(`Created by 임채성 ${generatedAtText}`, layout.margin + layout.sidebarW / 2 - 92, layout.margin + 60, 12, "5B6B86");
+  text("Leaf-Spine Planner", layout.margin + 50, layout.margin + 38 + layout.titleOffsetY, 28, "2563EB");
+  text(`Created by 임채성 ${generatedAtText}`, layout.margin + layout.sidebarW / 2 - 92, layout.margin + 60 + layout.titleOffsetY, 12, "5B6B86");
   line(layout.margin + 20, layout.sidebarDividerY, layout.margin + layout.sidebarW - 20, layout.sidebarDividerY);
   drawPdfRows(ops, layout.sidebarRows, layout.margin + 20, layout.sidebarTopRowsY, layout.sidebarW - 40, text);
 
@@ -426,15 +427,16 @@ function getReportLayout() {
   const pageHeight = 1867;
   const margin = 20;
   const gap = 18;
-  const sidebarW = 340;
+  const sidebarW = 380;
   const contentX = margin + sidebarW + gap;
   const contentW = pageWidth - contentX - margin;
   const sidebarRows = getReportInputRows();
   const detailRows = getReportDetailRows();
   const metrics = getReportMetrics();
-  const sidebarDividerY = margin + 80;
-  const sidebarTopRowsY = margin + 108;
-  const sidebarH = 126 + reportRowsHeight(sidebarRows);
+  const titleOffsetY = 10;
+  const sidebarDividerY = margin + 80 + titleOffsetY;
+  const sidebarTopRowsY = margin + 108 + titleOffsetY;
+  const sidebarH = 126 + titleOffsetY + reportRowsHeight(sidebarRows);
   const metricH = 92;
   const minDiagramH = 420;
   const detailContentOffset = 76;
@@ -451,6 +453,7 @@ function getReportLayout() {
     pageHeight,
     margin,
     gap,
+    titleOffsetY,
     sidebarW,
     contentX,
     contentW,

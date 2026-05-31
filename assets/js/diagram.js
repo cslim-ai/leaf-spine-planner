@@ -349,6 +349,7 @@ function openDiagramWindow() {
       const variants = ${JSON.stringify(variants)};
       const defaultViewWidth = 920;
       const defaultViewHeight = 500;
+      const fitPadding = 24;
       const minZoom = 0.1;
       const maxZoom = 10;
       const zoomStep = 0.05;
@@ -366,10 +367,26 @@ function openDiagramWindow() {
         return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/0+$/, "").replace(/\\.$/, "");
       }
 
+      function viewportSize() {
+        const rect = svg ? svg.getBoundingClientRect() : { width: 0, height: 0 };
+        let width = Math.min(defaultViewWidth, baseWidth);
+        let height = Math.min(defaultViewHeight, baseHeight);
+        const aspect = rect.width > 0 && rect.height > 0 ? rect.width / rect.height : width / height;
+        if (Number.isFinite(aspect) && aspect > 0) {
+          if (width / height < aspect) {
+            width = Math.max(width, height * aspect);
+          } else if (width / height > aspect) {
+            height = Math.max(height, width / aspect);
+          }
+        }
+        return { width, height };
+      }
+
       function viewBoxSize() {
+        const viewport = viewportSize();
         return {
-          width: Math.min(defaultViewWidth, baseWidth) / zoom,
-          height: Math.min(defaultViewHeight, baseHeight) / zoom,
+          width: viewport.width / zoom,
+          height: viewport.height / zoom,
         };
       }
 
@@ -433,9 +450,27 @@ function openDiagramWindow() {
       }
 
       function fitView() {
-        zoom = Math.min(maxZoom, Math.max(minZoom, Math.min(defaultViewWidth / baseWidth, defaultViewHeight / baseHeight)));
-        pan = centeredPan();
+        const viewport = viewportSize();
+        const bounds = contentBounds();
+        const targetWidth = Math.max(1, bounds.width + fitPadding * 2);
+        const targetHeight = Math.max(1, bounds.height + fitPadding * 2);
+        zoom = Math.min(maxZoom, Math.max(minZoom, Math.min(viewport.width / targetWidth, viewport.height / targetHeight)));
+        const size = viewBoxSize();
+        pan = {
+          x: bounds.x + bounds.width / 2 - size.width / 2,
+          y: bounds.y + bounds.height / 2 - size.height / 2,
+        };
         applyView();
+      }
+
+      function contentBounds() {
+        try {
+          const bbox = svg.getBBox();
+          if (bbox.width > 0 && bbox.height > 0) return bbox;
+        } catch (error) {
+          // Ignore transient layout states before the SVG is measurable.
+        }
+        return { x: 0, y: 0, width: baseWidth, height: baseHeight };
       }
 
       function centeredPan() {
@@ -689,63 +724,42 @@ function makeEmbeddedPretendardFontCss() {
     return `
       @font-face {
         font-family: "Pretendard";
-        src: url("${urls.thin}") format("truetype");
-        font-weight: 100;
-        font-style: normal;
-        font-display: block;
-      }
-      @font-face {
-        font-family: "Pretendard";
-        src: url("${urls.extraLight}") format("truetype");
-        font-weight: 200;
-        font-style: normal;
-        font-display: block;
-      }
-      @font-face {
-        font-family: "Pretendard";
-        src: url("${urls.light}") format("truetype");
-        font-weight: 300;
-        font-style: normal;
-        font-display: block;
-      }
-      @font-face {
-        font-family: "Pretendard";
-        src: url("${urls.regular}") format("truetype");
+        src: url("${urls.regular}") format("woff2");
         font-weight: 400;
         font-style: normal;
         font-display: block;
       }
       @font-face {
         font-family: "Pretendard";
-        src: url("${urls.medium}") format("truetype");
+        src: url("${urls.medium}") format("woff2");
         font-weight: 500;
         font-style: normal;
         font-display: block;
       }
       @font-face {
         font-family: "Pretendard";
-        src: url("${urls.semiBold}") format("truetype");
+        src: url("${urls.semiBold}") format("woff2");
         font-weight: 600;
         font-style: normal;
         font-display: block;
       }
       @font-face {
         font-family: "Pretendard";
-        src: url("${urls.bold}") format("truetype");
+        src: url("${urls.bold}") format("woff2");
         font-weight: 700;
         font-style: normal;
         font-display: block;
       }
       @font-face {
         font-family: "Pretendard";
-        src: url("${urls.extraBold}") format("truetype");
+        src: url("${urls.extraBold}") format("woff2");
         font-weight: 800;
         font-style: normal;
         font-display: block;
       }
       @font-face {
         font-family: "Pretendard";
-        src: url("${urls.black}") format("truetype");
+        src: url("${urls.black}") format("woff2");
         font-weight: 900;
         font-style: normal;
         font-display: block;
@@ -755,63 +769,42 @@ function makeEmbeddedPretendardFontCss() {
   return `
     @font-face {
       font-family: "Pretendard";
-      src: url("assets/fonts/Pretendard-Thin.ttf") format("truetype");
-      font-weight: 100;
-      font-style: normal;
-      font-display: swap;
-    }
-    @font-face {
-      font-family: "Pretendard";
-      src: url("assets/fonts/Pretendard-ExtraLight.ttf") format("truetype");
-      font-weight: 200;
-      font-style: normal;
-      font-display: swap;
-    }
-    @font-face {
-      font-family: "Pretendard";
-      src: url("assets/fonts/Pretendard-Light.ttf") format("truetype");
-      font-weight: 300;
-      font-style: normal;
-      font-display: swap;
-    }
-    @font-face {
-      font-family: "Pretendard";
-      src: url("assets/fonts/Pretendard-Regular.ttf") format("truetype");
+      src: url("assets/fonts/Pretendard-1.3.9/web/static/woff2-subset/Pretendard-Regular.subset.woff2") format("woff2");
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: "Pretendard";
-      src: url("assets/fonts/Pretendard-Medium.ttf") format("truetype");
+      src: url("assets/fonts/Pretendard-1.3.9/web/static/woff2-subset/Pretendard-Medium.subset.woff2") format("woff2");
       font-weight: 500;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: "Pretendard";
-      src: url("assets/fonts/Pretendard-SemiBold.ttf") format("truetype");
+      src: url("assets/fonts/Pretendard-1.3.9/web/static/woff2-subset/Pretendard-SemiBold.subset.woff2") format("woff2");
       font-weight: 600;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: "Pretendard";
-      src: url("assets/fonts/Pretendard-Bold.ttf") format("truetype");
+      src: url("assets/fonts/Pretendard-1.3.9/web/static/woff2-subset/Pretendard-Bold.subset.woff2") format("woff2");
       font-weight: 700;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: "Pretendard";
-      src: url("assets/fonts/Pretendard-ExtraBold.ttf") format("truetype");
+      src: url("assets/fonts/Pretendard-1.3.9/web/static/woff2-subset/Pretendard-ExtraBold.subset.woff2") format("woff2");
       font-weight: 800;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: "Pretendard";
-      src: url("assets/fonts/Pretendard-Black.ttf") format("truetype");
+      src: url("assets/fonts/Pretendard-1.3.9/web/static/woff2-subset/Pretendard-Black.subset.woff2") format("woff2");
       font-weight: 900;
       font-style: normal;
       font-display: swap;

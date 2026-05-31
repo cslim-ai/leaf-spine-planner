@@ -18,8 +18,9 @@
             </div>
           </div>
 
-          <form class="panel inputs" id="networkForm">
-            <div class="section-title">노드</div>
+          <div class="sidebar-scroll">
+            <form class="panel inputs" id="networkForm">
+              <div class="section-title">노드</div>
             <label>
               <span>노드 수</span>
               <input id="serverCount" type="number" min="1" step="1" value="8" required />
@@ -64,11 +65,6 @@
               <input id="useTwinPort" type="checkbox" />
               <span id="twinPortLabel">2x200 Twin-port Transceiver 사용</span>
             </label>
-            <label class="check-row sub-check-row">
-              <input id="disableUplinkTwinPort" type="checkbox" />
-              <span>Leaf-Spine 링크에 Twin-port Transceiver 사용안함</span>
-            </label>
-
             <div class="subsection-title">Spine</div>
             <label id="customSpineCountField" class="hidden">
               <span>Spine 수</span>
@@ -111,9 +107,10 @@
                 <span>1 :</span>
                 <input id="targetOversub" type="number" min="1.1" step="0.1" value="3" />
               </div>
-              <small class="field-note">노드 NIC는 모두 Leaf에 연결하고, Leaf-Spine 링크 수와 대역폭을 줄여 목표 1:n oversubscription을 맞춥니다.</small>
+              <small class="field-note">노드 연결 포트는 모두 Leaf에 연결하고, Leaf-Spine 링크 수와 대역폭을 줄여 목표 1:n oversubscription을 맞춥니다.</small>
             </label>
 
+            <div class="form-actions-separator" aria-hidden="true"></div>
             <button type="submit">계산하기</button>
             <div id="reportExportMenu" class="export-menu report-export">
               <button id="exportPdf" class="save-report" type="button">보고서 생성</button>
@@ -131,11 +128,12 @@
               <input id="useMultiPods" type="checkbox" />
               <span>Multi-pods Design 사용</span>
             </label>
-            <label id="podField" class="hidden">
-              <span>Pod당 노드 수</span>
-              <input id="podServerCount" type="number" min="1" step="1" value="64" />
-            </label>
-          </form>
+              <label id="podField" class="hidden">
+                <span>Pod당 노드 수</span>
+                <input id="podServerCount" type="number" min="1" step="1" value="64" />
+              </label>
+            </form>
+          </div>
         </aside>
 
         <section class="results">

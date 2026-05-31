@@ -16,31 +16,7 @@
 
 @font-face {
   font-family: "Pretendard";
-  src: url("../fonts/Pretendard-Thin.ttf") format("truetype");
-  font-weight: 100;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Pretendard";
-  src: url("../fonts/Pretendard-ExtraLight.ttf") format("truetype");
-  font-weight: 200;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Pretendard";
-  src: url("../fonts/Pretendard-Light.ttf") format("truetype");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Pretendard";
-  src: url("../fonts/Pretendard-Regular.ttf") format("truetype");
+  src: url("../fonts/Pretendard-1.3.9/web/static/woff2-subset/Pretendard-Regular.subset.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -48,7 +24,7 @@
 
 @font-face {
   font-family: "Pretendard";
-  src: url("../fonts/Pretendard-Medium.ttf") format("truetype");
+  src: url("../fonts/Pretendard-1.3.9/web/static/woff2-subset/Pretendard-Medium.subset.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -56,7 +32,7 @@
 
 @font-face {
   font-family: "Pretendard";
-  src: url("../fonts/Pretendard-SemiBold.ttf") format("truetype");
+  src: url("../fonts/Pretendard-1.3.9/web/static/woff2-subset/Pretendard-SemiBold.subset.woff2") format("woff2");
   font-weight: 600;
   font-style: normal;
   font-display: swap;
@@ -64,7 +40,7 @@
 
 @font-face {
   font-family: "Pretendard";
-  src: url("../fonts/Pretendard-Bold.ttf") format("truetype");
+  src: url("../fonts/Pretendard-1.3.9/web/static/woff2-subset/Pretendard-Bold.subset.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -72,7 +48,7 @@
 
 @font-face {
   font-family: "Pretendard";
-  src: url("../fonts/Pretendard-ExtraBold.ttf") format("truetype");
+  src: url("../fonts/Pretendard-1.3.9/web/static/woff2-subset/Pretendard-ExtraBold.subset.woff2") format("woff2");
   font-weight: 800;
   font-style: normal;
   font-display: swap;
@@ -80,7 +56,7 @@
 
 @font-face {
   font-family: "Pretendard";
-  src: url("../fonts/Pretendard-Black.ttf") format("truetype");
+  src: url("../fonts/Pretendard-1.3.9/web/static/woff2-subset/Pretendard-Black.subset.woff2") format("woff2");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
@@ -109,7 +85,7 @@ body {
 
 .workspace {
   display: grid;
-  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-columns: 380px minmax(0, 1fr);
   gap: 18px;
   align-items: start;
   height: 100%;
@@ -124,6 +100,13 @@ body {
   min-height: 0;
 }
 
+.sidebar-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+  overscroll-behavior: contain;
+}
+
 .panel,
 .metric {
   background: var(--panel);
@@ -136,9 +119,6 @@ body {
   display: grid;
   gap: 12px;
   padding: 20px;
-  max-height: 100%;
-  overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
 .panel-header {
@@ -181,6 +161,12 @@ body {
   color: var(--accent-dark);
   font-size: 16px;
   font-weight: 900;
+}
+
+.inputs > .section-title:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
 }
 
 .section-title-with-action {
@@ -368,8 +354,16 @@ button:hover {
   background: var(--accent-dark);
 }
 
+.form-actions-separator {
+  order: 98;
+  height: 0;
+  margin-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
 .inputs button[type="submit"] {
   order: 99;
+  margin-top: 8px;
 }
 
 .report-export {
@@ -591,7 +585,7 @@ dd.is-warning {
 
 @media (min-width: 1600px) {
   .workspace {
-    grid-template-columns: 340px minmax(0, 1fr);
+    grid-template-columns: 380px minmax(0, 1fr);
   }
 
   .summary-grid {
@@ -921,11 +915,16 @@ svg {
     padding-bottom: 0;
   }
 
+  .sidebar-scroll,
   .inputs,
   .results {
     max-height: none;
     overflow: visible;
     padding-right: 0;
+  }
+
+  .sidebar-scroll {
+    display: contents;
   }
 
   .results-scroll {
@@ -984,6 +983,12 @@ svg {
   .sidebar {
     display: block;
     height: auto;
+  }
+
+  .sidebar-scroll {
+    display: block;
+    overflow: visible;
+    padding-right: 0;
   }
 
   .panel {
