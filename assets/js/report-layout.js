@@ -73,7 +73,7 @@ function makeReportSvg(generatedAtText = formatDisplayTimestamp(new Date()), emb
       ${reportRows(sidebarRows, margin + 20, sidebarTopRowsY, sidebarW - 40)}
       ${metrics.map((item, index) => reportMetricCard(contentX + index * ((contentW - 36) / 4 + 12), margin, (contentW - 36) / 4, metricH, item)).join("")}
       ${reportPanel(contentX, margin + metricH + gap, contentW, detailH)}
-      <text class="panel-title" x="${contentX + 20}" y="${margin + metricH + gap + 32}">계산 결과</text>
+      <text class="panel-title" x="${contentX + 20}" y="${margin + metricH + gap + 32}">구성 결과</text>
       <line x1="${contentX + 20}" y1="${margin + metricH + gap + 46}" x2="${contentX + contentW - 20}" y2="${margin + metricH + gap + 46}" stroke="#c8d8ee" stroke-width="1"/>
       ${reportDetailRows(detailRows, contentX + 20, margin + metricH + gap + detailContentOffset, contentW - 40, detailRowH, detailSeparatorH)}
       ${reportPanel(contentX, diagramY, contentW, diagramH)}
@@ -123,7 +123,7 @@ function reportRows(rows, x, y, width) {
       cursorY += 24;
       return markup;
     }
-    const valueX = x + width * 0.62;
+    const valueX = x + width * 0.72;
     if (row.valueNextLine) {
       const markup = `
         <text class="label" x="${x}" y="${cursorY}">${escapeXml(row.label)}</text>
@@ -257,18 +257,17 @@ function getReportInputRows() {
     ...(fields.useMultiPlanar.checked ? [{
       label: "노드에 Twin-port Transceiver 사용",
       value: `${getTwinPortSpeedText(fields.serverLinkSpeed)} 사용`,
-      valueNextLine: true,
     }] : []),
     { type: "section", label: "스위치" },
     { type: "subsection", label: "Leaf" },
     { label: "Leaf당 포트 수", value: fields.switchPorts.value },
     { label: "Leaf 포트당 링크 스피드", value: `${fields.switchLinkSpeed.value} Gbps` },
-    { label: "Leaf에 Twin-port Transceiver 사용", value: fields.useTwinPort.checked ? `${getTwinPortSpeedText(fields.switchLinkSpeed)} 사용` : "미사용", valueNextLine: true },
+    { label: "Leaf에 Twin-port Transceiver 사용", value: fields.useTwinPort.checked ? `${getTwinPortSpeedText(fields.switchLinkSpeed)} 사용` : "미사용" },
     { type: "subsection", label: "Spine" },
     { label: "Leaf와 사양 같음", value: fields.spineSameAsLeaf.checked ? "사용" : "미사용" },
     { label: "Spine당 포트 수", value: fields.spineSwitchPorts.value },
     { label: "Spine 포트당 링크 스피드", value: `${fields.spineSwitchLinkSpeed.value} Gbps` },
-    { label: "Spine에 Twin-port Transceiver 사용", value: fields.spineUseTwinPort.checked ? `${getTwinPortSpeedText(fields.spineSwitchLinkSpeed)} 사용` : "미사용", valueNextLine: true },
+    { label: "Spine에 Twin-port Transceiver 사용", value: fields.spineUseTwinPort.checked ? `${getTwinPortSpeedText(fields.spineSwitchLinkSpeed)} 사용` : "미사용" },
     { type: "section", label: "구성 방식" },
     { label: "Topology", value: getMode() === "oversubscribed" ? "Oversubscribed" : "Non-blocking" },
     { label: "Multi-planar Design", value: fields.useMultiPlanar.checked ? "사용" : "미사용" },
@@ -390,7 +389,7 @@ async function makeSelectableReportPdf(generatedAtText = formatDisplayTimestamp(
 
   const detailY = layout.margin + layout.metricH + layout.gap;
   rect(layout.contentX, detailY, layout.contentW, layout.detailH);
-  text("계산 결과", layout.contentX + 20, detailY + 32, 17, "0F172A");
+  text("구성 결과", layout.contentX + 20, detailY + 32, 17, "0F172A");
   line(layout.contentX + 20, detailY + 46, layout.contentX + layout.contentW - 20, detailY + 46);
   drawPdfDetailRows(ops, layout.detailRows, layout.contentX + 20, detailY + layout.detailContentOffset, layout.contentW - 40, layout.detailRowH, layout.detailSeparatorH, layout.detailFontSize, text, line);
 
@@ -495,12 +494,12 @@ function drawPdfRows(ops, rows, x, y, width, text) {
     }
     if (row.valueNextLine) {
       text(row.label, x, cursorY, 14, "5B6B86");
-      text(row.value, x + width * 0.62, cursorY + 20, 14, "0F172A");
+      text(row.value, x + width * 0.72, cursorY + 20, 14, "0F172A");
       cursorY += 56;
       return;
     }
     text(row.label, x, cursorY, 14, "5B6B86");
-    text(row.value, x + width * 0.62, cursorY, 14, "0F172A");
+    text(row.value, x + width * 0.72, cursorY, 14, "0F172A");
     cursorY += 38;
   });
 }

@@ -1,105 +1,149 @@
-# Leaf-Spine 설계 계산기
+# Leaf-Spine Planner
 
-노드 NIC와 네트워크 스위치 조건을 입력하면 Leaf-Spine 토폴로지의 Leaf/Spine 스위치 수, oversubscription 비율, 구성도, 포트맵, 리포트를 계산하는 정적 웹 애플리케이션입니다.
+Leaf-Spine Planner는 노드, Leaf, Spine 조건을 입력해 2-tier Leaf-Spine 구성을 산정하고, 구성도와 포트맵을 오프라인에서 생성하는 정적 웹 애플리케이션입니다.
 
-## 실행
+이 프로젝트는 브라우저에서 직접 실행되는 HTML/CSS/JavaScript 기반 앱입니다. 실행과 주요 export 기능은 프로젝트 내부 파일만 사용하며 CDN이나 인터넷 연결에 의존하지 않습니다.
 
-별도 서버나 빌드 과정 없이 `index.html` 파일을 브라우저에서 열어 사용할 수 있습니다.
+## 주요 기능
 
-로컬 서버로 확인하려면 프로젝트 루트에서 아래 명령을 실행합니다.
+- 노드 수, 노드당 연결 포트 수, 노드 연결 포트당 링크 스피드 입력
+- Leaf와 Spine의 포트 수, 포트당 링크 스피드, Twin-port Transceiver 조건 분리 입력
+- Leaf/Spine 수 자동 산정 또는 Custom 수동 검증
+- Non-blocking 및 Oversubscription 구성 산정
+- Multi-planar Design 구성
+  - 2-plane 기준으로 구성
+  - 노드 연결 포트에 Twin-port Transceiver를 강제 적용
+  - 노드 연결 포트의 논리 링크를 서로 다른 plane에 분산
+- Multi-pods Design 구성
+  - pod당 노드 수 기준으로 독립 fabric 그룹 구성
+- Full, Wrapped, Summary 구성도 보기
+- 구성도 zoom, pan, 가운데 정렬, 화면 맞춤
+- 구성도 export: SVG, PNG, PPT
+- Port Map 새 창 보기 및 export: Excel, PPT
+- Report export: SVG, PDF
+- Pretendard 폰트 내장으로 웹 화면, SVG/PNG export, 리포트 표시 일관성 유지
+
+## 실행 방법
+
+가장 단순한 실행 방법은 `index.html` 파일을 브라우저에서 여는 것입니다.
+
+로컬 HTTP 서버로 확인하려면 프로젝트 루트에서 다음 명령을 실행합니다.
 
 ```powershell
-python -m http.server 4177 --bind 127.0.0.1
+python -m http.server 4173 --bind 127.0.0.1
 ```
 
 브라우저에서 다음 주소를 엽니다.
 
 ```text
-http://127.0.0.1:4177/index.html
+http://127.0.0.1:4173/
 ```
 
-## 오프라인 사용
+## 오프라인 동작 조건
 
-현재 소스 구성은 폰트와 export용 라이브러리를 로컬 파일로 포함합니다. 아래 폴더와 파일을 그대로 복사하면 인터넷 연결 없이 동작합니다.
+다음 파일이 프로젝트 내부에 있으면 인터넷 연결 없이 동작합니다.
+
+- `index.html`
+- `assets/css/styles.css`
+- `assets/js/*.js`
+- `assets/vendor/jszip.min.js`
+- `assets/vendor/pptxgen.min.js`
+- `assets/fonts/Pretendard-1.3.9/web/static/woff2-subset/*.woff2`
+
+PPT/Excel 생성은 내장된 vendor 스크립트를 사용합니다. 웹 폰트, 구성도 SVG/PNG, 리포트 SVG/PDF는 프로젝트 내부 Pretendard subset 폰트를 사용합니다.
+
+## 구성 산정 기준
+
+- 기본 구성은 모든 Leaf가 모든 Spine에 연결되는 2-tier Leaf-Spine 구조입니다.
+- 고가용성을 위해 Leaf와 Spine은 가능한 경우 각각 최소 2대 이상으로 산정합니다.
+- Non-blocking은 전체 Leaf-Spine 업링크 대역폭이 전체 노드-Leaf 다운링크 대역폭 이상이 되도록 구성합니다.
+- Oversubscription은 노드 연결 포트는 모두 Leaf에 연결하고, Leaf-Spine 업링크 수와 대역폭을 줄여 목표 비율에 맞춥니다.
+- Leaf-Spine 링크는 Spine 측 Twin-port 사용 여부와 양쪽 포트 속도 조건을 기준으로 논리 링크 수와 물리 포트 사용량을 분리 산정합니다.
+- 예를 들어 Leaf 400G, Spine 800G, Spine Twin-port 사용 구성에서는 논리 링크 속도를 400G로 맞추고 Spine 물리 포트 사용량만 절감합니다.
+- Multi-planar Design에서는 노드 연결 포트를 Twin-port로 논리 분리해 각 plane에 연결합니다.
+
+## 폴더 구조
 
 ```text
-index.html
-assets/
-  css/
-  fonts/
-  images/
-  js/
-  vendor/
-tests/
-README.md
-LICENSE
+.
+├─ index.html
+├─ README.md
+├─ scenario-analysis.md
+├─ assets/
+│  ├─ css/
+│  │  └─ styles.css
+│  ├─ fonts/
+│  │  └─ Pretendard-1.3.9/
+│  │     ├─ LICENSE.txt
+│  │     └─ web/static/woff2-subset/
+│  ├─ images/
+│  │  └─ favicon-96x96.png
+│  ├─ js/
+│  │  ├─ app.js
+│  │  ├─ calculator.js
+│  │  ├─ diagram.js
+│  │  ├─ diagram-helpers.js
+│  │  ├─ export-utils.js
+│  │  ├─ portmap.js
+│  │  ├─ portmap-export.js
+│  │  ├─ report.js
+│  │  ├─ report-font.js
+│  │  └─ report-layout.js
+│  └─ vendor/
+│     ├─ jszip.min.js
+│     └─ pptxgen.min.js
+└─ tests/
+   ├─ browser-smoke.html
+   └─ calculator.test.js
 ```
 
-주의할 점:
+## 핵심 소스
 
-- `assets/fonts/`의 Pretendard 폰트 파일이 있어야 웹 화면, 구성도 export, 리포트 export의 글꼴이 동일하게 표시됩니다.
-- `assets/vendor/`의 `jszip.min.js`, `pptxgen.min.js`가 있어야 PPTX export가 오프라인에서 동작합니다.
-- 폴더 구조를 변경하면 `index.html`, 테스트 파일, export 로더의 상대 경로도 함께 수정해야 합니다.
-
-## 주요 파일
-
-- `assets/js/calculator.js`: Leaf/Spine 수량, 대역폭, oversubscription, multi-planar plane 계산
-- `assets/js/diagram.js`: 네트워크 구성도 렌더링 및 SVG/PNG/PPT export
-- `assets/js/report.js`: 리포트 SVG/PDF export
-- `assets/js/portmap.js`: 포트맵 새 창, Excel/PPT export
-- `assets/js/export-utils.js`: 로컬 vendor 라이브러리 로더
-- `assets/js/report-font.js`: export용 Pretendard 폰트 내장 데이터
-- `assets/css/styles.css`: 화면 스타일과 Pretendard 폰트 정의
-- `assets/fonts/`: Pretendard 폰트 원본
-- `assets/vendor/`: 오프라인 PPTX export용 JSZip, PptxGenJS
-- `tests/calculator.test.js`: 계산 로직 단위 테스트
-- `tests/browser-smoke.html`: 브라우저 렌더링/export smoke test
-
-## 계산 기준
-
-- 기본 Leaf-Spine 구성은 모든 Leaf가 모든 Spine에 연결되는 full-mesh 조건을 기준으로 합니다.
-- Non-blocking은 Leaf 업링크 대역폭이 노드 다운링크 대역폭 이상이 되도록 계산합니다.
-- Leaf와 Spine은 이중화와 고가용성을 위해 각각 최소 2대 이상으로 계산합니다.
-- Oversubscription 구성에서도 노드 NIC는 모두 Leaf에 연결하고, Leaf-Spine 업링크 수와 대역폭을 줄여 목표 비율을 맞춥니다.
-- Twin-port Transceiver를 사용하면 스위치 물리 포트를 논리 포트 2개로 계산합니다.
-- Leaf-Spine 업링크에 Twin-port Transceiver를 사용하지 않는 옵션을 켜면 업링크는 입력된 포트당 링크 스피드를 그대로 사용합니다.
-- Multi-planar Design은 노드 NIC 포트를 Twin-port Transceiver로 2개의 논리 링크로 분리하고, 두 링크를 각각 독립된 Leaf-Spine plane에 연결하는 방식으로 계산합니다.
-- Multi-pods Design은 입력한 Pod당 노드 수를 기준으로 노드와 Leaf-Spine fabric을 독립 pod 그룹으로 나누고, 각 pod에 동일한 설계 기준을 적용합니다.
+- `assets/js/calculator.js`: Leaf-Spine 구성 산정, 포트/대역폭/케이블 산정, 구성 가능 여부 검증
+- `assets/js/app.js`: 입력 폼, 결과 렌더링, 구성도 컨트롤, export 연동
+- `assets/js/diagram.js`: 구성도 SVG 모델 생성, zoom/pan/export 기준 데이터 구성
+- `assets/js/portmap.js`: 포트맵 데이터 생성 및 새 창 렌더링
+- `assets/js/portmap-export.js`: 포트맵 Excel/PPT export
+- `assets/js/report.js`: SVG/PDF 리포트 생성
+- `assets/js/report-layout.js`: 리포트 레이아웃 렌더링
+- `assets/js/report-font.js`: 리포트용 Pretendard 폰트 데이터
 
 ## 테스트
 
-Node.js가 설치되어 있으면 계산 로직 테스트를 실행할 수 있습니다.
+구성 산정 로직 회귀 테스트:
 
 ```powershell
 node tests/calculator.test.js
 ```
 
-브라우저 기능과 export blob 생성은 로컬 서버 실행 후 아래 파일을 브라우저에서 열어 확인합니다.
+JavaScript 문법 검사:
 
-```text
-http://127.0.0.1:4177/tests/browser-smoke.html
+```powershell
+Get-ChildItem assets/js/*.js | ForEach-Object { node --check $_.FullName }
 ```
 
-정상 동작하면 화면에 `PASS`가 표시됩니다. 이 테스트는 기본 계산, 구성도 SVG 렌더링, 리포트 SVG 생성, 포트맵 생성, XLSX/PPTX blob 생성을 확인합니다.
+브라우저 smoke test:
+
+```powershell
+python -m http.server 4173 --bind 127.0.0.1
+```
+
+이후 브라우저에서 다음 주소를 엽니다.
+
+```text
+http://127.0.0.1:4173/tests/browser-smoke.html
+```
 
 ## 배포
 
-정적 파일만 제공하면 되므로 웹 서버, NAS, 내부 포털, 정적 호스팅에 그대로 업로드할 수 있습니다.
+정적 파일만 제공하면 되므로 GitHub Pages, 사내 정적 웹 서버, 로컬 파일 공유 경로에서 실행할 수 있습니다.
 
-권장 배포 방식:
+GitHub Pages에 배포하는 경우 저장소의 Pages 설정에서 배포 브랜치와 루트 경로를 지정하면 됩니다.
 
-1. 프로젝트 루트 전체를 배포 대상 폴더로 복사합니다.
-2. `index.html`을 기본 문서로 설정합니다.
-3. 배포 후 `tests/browser-smoke.html`을 한 번 실행해 상대 경로와 export 기능을 확인합니다.
-4. 검증이 끝나면 운영 환경에서 `tests/` 폴더는 제거해도 됩니다.
+## 유지보수 참고
 
-## GitHub 버전 관리
-
-Codex 환경에서 `git` 명령이 PATH에 없으면 Windows 기본 설치 경로를 직접 호출할 수 있습니다.
-
-```powershell
-& "C:\Program Files\Git\cmd\git.exe" status
-& "C:\Program Files\Git\cmd\git.exe" add .
-& "C:\Program Files\Git\cmd\git.exe" commit -m "변경 내용을 설명하는 메시지"
-& "C:\Program Files\Git\cmd\git.exe" push
-```
+- 외부 CDN 의존성을 추가하지 않습니다.
+- export 기능에 필요한 vendor 파일은 `assets/vendor/`에 유지합니다.
+- 폰트는 실제 사용하는 Pretendard woff2 subset만 유지합니다.
+- 구성 산정 로직 수정 시 `tests/calculator.test.js`에 회귀 케이스를 추가합니다.
+- UI 문구 변경 시 웹 화면, 리포트, export 결과의 용어가 일관되는지 함께 확인합니다.

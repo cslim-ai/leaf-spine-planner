@@ -733,21 +733,22 @@ function makeMessage({ input, best }) {
   const parts = [];
   if (input.useMultiPlanar || input.useMultiPods) {
     if (input.useMultiPods) {
-      parts.push(`Multi-pods design으로 Pod당 노드 ${best.podServerCount}대 기준 ${best.multiPodCount}개의 독립 pod를 계산했습니다.`);
+      parts.push(`Multi-pods design으로 Pod당 노드 ${best.podServerCount}대 기준 ${best.multiPodCount}개의 독립 pod를 구성했습니다.`);
     }
     if (input.useMultiPlanar) {
       parts.push("Multi-planar design으로 각 pod 또는 전체 fabric을 2개의 독립 plane으로 구성했습니다. 노드 연결 포트는 Twin-port Transceiver로 논리 분리되어 각 plane에 연결됩니다.");
     }
   } else if (input.mode === "nonblocking") {
-    parts.push("Non-blocking 조건으로 Leaf의 업링크 대역폭이 다운링크 대역폭 이상이 되도록 계산했습니다.");
+    parts.push("Non-blocking 조건으로 Leaf의 업링크 대역폭이 다운링크 대역폭 이상이 되도록 구성했습니다.");
   } else {
     parts.push(`목표 1:${trim(input.targetOversub)} 이하에서 스위치 수가 가장 적은 oversubscribed 구성을 선택했습니다.`);
   }
   const leafPortSpeed = input.leafSwitchLinkSpeed || input.switchLinkSpeed;
-  if (input.serverLinkSpeed > leafPortSpeed) {
+  const nodeLeafLogicalSpeed = nodeLeafLinkSpeed(input);
+  if (nodeLeafLogicalSpeed > leafPortSpeed) {
     parts.push("노드 연결 포트당 링크 스피드가 Leaf 포트당 링크 스피드보다 높아 실제 구성에서는 포트 호환성을 별도로 확인해야 합니다.");
   }
-  if (shouldWarnLeafTwinPortEfficiency(input, leafPortSpeed)) {
+  if (shouldWarnLeafTwinPortEfficiency(input, leafPortSpeed, nodeLeafLogicalSpeed)) {
     parts.push("Leaf 포트당 링크 스피드가 노드 연결 포트당 링크 스피드보다 높고 Leaf에 Twin-port Transceiver를 사용하지 않아 Leaf 포트 대역폭이 낭비될 수 있습니다.");
   }
   const leafSpinePortWarning = getLeafSpinePortEfficiencyWarning(input, best);
@@ -763,10 +764,14 @@ function makeMessage({ input, best }) {
   return parts.join(" ");
 }
 
-function shouldWarnLeafTwinPortEfficiency(input, leafPortSpeed) {
+function nodeLeafLinkSpeed(input) {
+  return input.serverLinkSpeed / (input.useNodeTwinPort ? 2 : 1);
+}
+
+function shouldWarnLeafTwinPortEfficiency(input, leafPortSpeed, nodeLeafLogicalSpeed = nodeLeafLinkSpeed(input)) {
   if (input.useTwinPort) return false;
   if (leafPortSpeed < 200) return false;
-  return leafPortSpeed >= input.serverLinkSpeed * 2;
+  return leafPortSpeed >= nodeLeafLogicalSpeed * 2;
 }
 
 function getLeafSpinePortEfficiencyWarning(input, best) {

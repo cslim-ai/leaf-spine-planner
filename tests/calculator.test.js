@@ -355,6 +355,27 @@ function withInput(overrides) {
 
 {
   const input = withInput({
+    serverCount: 32,
+    serverLinkSpeed: 400,
+    switchPorts: 64,
+    switchLinkSpeed: 400,
+    spineSwitchPorts: 64,
+    spineSwitchLinkSpeed: 800,
+    spineUseTwinPort: true,
+  });
+  const result = calculate(input);
+  assert(result.feasible, "asymmetric leaf-spine twin-port input should be feasible");
+  assertEqual(leafSpineLeafTwinFactor(input), 1, "400G leaf ports should remain unsplit when connecting to 2x400G spine ports");
+  assertEqual(leafSpineTwinFactor(input), 2, "800G spine ports should split into 2x400G links");
+  assertEqual(effectiveSwitchLinkSpeed(input), 400, "asymmetric leaf-spine twin-port should keep a 400G logical link speed");
+  assertEqual(result.best.uplinksPerLeaf, 32, "asymmetric spine twin-port should not double required leaf-spine logical links");
+  assertEqual(result.best.totalLeafUplinks, 256, "asymmetric spine twin-port should keep total leaf-spine logical links equal to the baseline");
+  assertEqual(result.best.spines, 2, "asymmetric spine twin-port should allow fewer spine switches");
+  assertEqual(result.best.usedPortsPerSpine, 64, "asymmetric spine twin-port should keep each selected spine fully utilized after spine count optimization");
+}
+
+{
+  const input = withInput({
     switchLinkSpeed: 1600,
     spineSwitchLinkSpeed: 1600,
     useTwinPort: true,
