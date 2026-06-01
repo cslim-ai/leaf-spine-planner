@@ -1,4 +1,9 @@
-﻿:root {
+/*
+ * Copyright © 2026 Chaeseong Lim.
+ * This software and its underlying algorithms may not be copied, modified, distributed, reverse engineered, or used to create derivative works without explicit written permission.
+ */
+
+:root {
   color-scheme: light;
   font-family:
     "Pretendard", Arial, sans-serif;
@@ -75,12 +80,33 @@ body {
 }
 
 .app {
+  position: relative;
   width: 100%;
   max-width: 1320px;
   margin: 0;
   height: 100vh;
-  padding: 20px;
+  padding: 20px 20px 54px;
   overflow: hidden;
+}
+
+.app-footer-notice {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  left: 20px;
+  margin: 0;
+  color: #000;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.app-footer-notice::before {
+  content: "\203B";
+  font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Segoe UI Symbol", sans-serif;
+  margin-right: 0.35em;
 }
 
 .workspace {
@@ -962,8 +988,15 @@ svg {
   .app {
     height: auto;
     min-height: 100vh;
-    padding: 14px;
+    padding: 14px 14px 68px;
     overflow: visible;
+  }
+
+  .app-footer-notice {
+    right: 14px;
+    bottom: 20px;
+    left: 14px;
+    white-space: normal;
   }
 
   .workspace,

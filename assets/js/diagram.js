@@ -1,3 +1,8 @@
+/*
+ * Copyright ? 2026 Chaeseong Lim.
+ * This software and its underlying algorithms may not be copied, modified, distributed, reverse engineered, or used to create derivative works without explicit written permission.
+ */
+
 // Diagram rendering, topology window, and topology PowerPoint export helpers.
 // This file is loaded before app.js; functions use app globals at call time.
 

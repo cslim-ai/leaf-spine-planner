@@ -1,3 +1,8 @@
+/*
+ * Copyright ? 2026 Chaeseong Lim.
+ * This software and its underlying algorithms may not be copied, modified, distributed, reverse engineered, or used to create derivative works without explicit written permission.
+ */
+
 // Report SVG layout and canvas rendering helpers.
 function reportTr(path, params = {}) {
   return typeof tr === "function" ? tr(path, params) : path;

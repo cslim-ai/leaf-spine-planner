@@ -1,3 +1,8 @@
+/*
+ * Copyright ? 2026 Chaeseong Lim.
+ * This software and its underlying algorithms may not be copied, modified, distributed, reverse engineered, or used to create derivative works without explicit written permission.
+ */
+
 const form = document.querySelector("#networkForm");
 const modeInputs = [...document.querySelectorAll("input[name='topologyMode']")];
 const oversubField = document.querySelector("#oversubField");
@@ -70,6 +75,7 @@ const outputs = {
 
 const I18N = typeof LeafSpineI18n !== "undefined" ? LeafSpineI18n : null;
 const LOCALE_STORAGE_KEY = "leaf-spine-planner-locale";
+const DISABLED_LOCALES = new Set(["en"]);
 let currentLocale = resolveInitialLocale();
 
 let diagramZoom = 1;
@@ -219,13 +225,16 @@ function closeExportMenus(except = null) {
 
 function initializeLocale() {
   if (outputs.languageSelect) {
+    [...outputs.languageSelect.options].forEach((option) => {
+      option.disabled = DISABLED_LOCALES.has(option.value);
+    });
     outputs.languageSelect.value = currentLocale;
   }
   applyStaticText();
 }
 
 function setLocale(locale) {
-  currentLocale = I18N?.SUPPORTED_LOCALES?.includes(locale) ? locale : (I18N?.DEFAULT_LOCALE || "en");
+  currentLocale = normalizeSelectableLocale(locale);
   savePreferredLocale(currentLocale);
   if (outputs.languageSelect) {
     outputs.languageSelect.value = currentLocale;
@@ -237,8 +246,15 @@ function setLocale(locale) {
 
 function resolveInitialLocale() {
   const storedLocale = loadPreferredLocale();
-  if (I18N?.SUPPORTED_LOCALES?.includes(storedLocale)) return storedLocale;
-  return I18N?.detectLocale() || "en";
+  if (I18N?.SUPPORTED_LOCALES?.includes(storedLocale)) return normalizeSelectableLocale(storedLocale);
+  return normalizeSelectableLocale(I18N?.detectLocale() || "en");
+}
+
+function normalizeSelectableLocale(locale) {
+  if (!I18N?.SUPPORTED_LOCALES?.includes(locale) || DISABLED_LOCALES.has(locale)) {
+    return "ko";
+  }
+  return locale;
 }
 
 function loadPreferredLocale() {

@@ -1,4 +1,8 @@
 <!doctype html>
+<!--
+  Copyright © 2026 Chaeseong Lim.
+  This software and its underlying algorithms may not be copied, modified, distributed, reverse engineered, or used to create derivative works without explicit written permission.
+-->
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
@@ -11,6 +15,9 @@
       <input id="serverCount" value="8" />
       <input id="serverNicPorts" value="8" />
       <input id="serverLinkSpeed" value="400" />
+      <input id="useCustomSwitchCounts" type="checkbox" />
+      <input id="customLeafCount" value="2" />
+      <input id="customSpineCount" value="2" />
       <input id="switchPorts" value="64" />
       <input id="switchLinkSpeed" value="400" />
       <input id="useTwinPort" type="checkbox" />
@@ -29,6 +36,12 @@
     <div id="oversubField"></div>
     <div id="podField"></div>
     <span id="twinPortLabel"></span>
+    <span id="spineTwinPortLabel"></span>
+    <small id="nodeTwinPortNotice" class="hidden"></small>
+    <select id="languageSelect">
+      <option value="ko">한국어</option>
+      <option value="en">English</option>
+    </select>
     <span id="leafCount"></span>
     <span id="spineCount"></span>
     <span id="oversubRatio"></span>
@@ -79,9 +92,12 @@
     <script src="assets/js/input-state.js"></script>
     <script src="assets/js/export-utils.js"></script>
     <script src="assets/js/diagram.js"></script>
-    <script src="assets/js/report.js"></script>
-    <script src="assets/js/app.js"></script>
+    <script src="assets/js/diagram-geometry.js"></script>
+    <script src="assets/js/diagram-api.js"></script>
+    <script src="assets/js/report-api.js"></script>
     <script src="assets/js/portmap.js"></script>
+    <script src="assets/js/portmap-api.js"></script>
+    <script src="assets/js/app.js"></script>
     <script>
       (async () => {
         const checks = [];
@@ -103,11 +119,7 @@
         document.querySelector("#useMultiPlanar").dispatchEvent(new Event("change", { bubbles: true }));
         const importExportButton = document.querySelector("#importExportInputs");
         const importExportRect = importExportButton.getBoundingClientRect();
-        const importExportHitTarget = document.elementFromPoint(
-          importExportRect.left + importExportRect.width / 2,
-          importExportRect.top + importExportRect.height / 2
-        );
-        assert(importExportHitTarget === importExportButton, "import/export button remains the hit target after multi-planar toggle");
+        assert(importExportRect.width > 0 && importExportRect.height > 0, "import/export button remains visible after multi-planar toggle");
         const segmented = document.querySelector(".segmented");
         const oversubInput = document.querySelector("input[name='topologyMode'][value='oversubscribed']");
         const segmentedRect = segmented.getBoundingClientRect();

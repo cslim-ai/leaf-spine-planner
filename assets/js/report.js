@@ -1,3 +1,8 @@
+/*
+ * Copyright ? 2026 Chaeseong Lim.
+ * This software and its underlying algorithms may not be copied, modified, distributed, reverse engineered, or used to create derivative works without explicit written permission.
+ */
+
 // A4 one-page report SVG export helpers.
 // This file uses app globals at click time and diagram SVG helpers from diagram.js.
 

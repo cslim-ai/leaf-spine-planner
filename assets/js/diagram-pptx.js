@@ -1,3 +1,8 @@
+/*
+ * Copyright ? 2026 Chaeseong Lim.
+ * This software and its underlying algorithms may not be copied, modified, distributed, reverse engineered, or used to create derivative works without explicit written permission.
+ */
+
 // Topology PPTX export using PptxGenJS.
 
 async function exportDiagramPptx(viewMode = diagramViewMode) {

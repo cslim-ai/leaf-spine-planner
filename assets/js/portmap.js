@@ -1,4 +1,9 @@
-﻿// Port map window, Excel export, and PowerPoint export helpers.
+/*
+ * Copyright ? 2026 Chaeseong Lim.
+ * This software and its underlying algorithms may not be copied, modified, distributed, reverse engineered, or used to create derivative works without explicit written permission.
+ */
+
+// Port map window, Excel export, and PowerPoint export helpers.
 // This file is loaded after app.js and uses the same classic-script globals.
 
 function openPortMapWindow() {

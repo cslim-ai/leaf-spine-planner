@@ -1,9 +1,110 @@
+/*
+ * Copyright ? 2026 Chaeseong Lim.
+ * This software and its underlying algorithms may not be copied, modified, distributed, reverse engineered, or used to create derivative works without explicit written permission.
+ */
+
 // Diagram geometry and shared SVG node helpers.
 
 function diagramGeometryForView(result, viewMode) {
   if (viewMode === "wrapped") return getPptDiagramGeometry(result);
   if (viewMode === "summary") return getSummaryDiagramGeometry(result);
   return getDiagramGeometry(result);
+}
+
+function getDiagramGeometry({ input, best }) {
+  const shownSpines = best.spines;
+  const shownLeafs = best.leafCount;
+  const shownServers = input.serverCount;
+  const labelGutter = DIAGRAM_LABEL_GUTTER;
+  const switchW = 116;
+  const switchH = 24;
+  const serverW = serverNodeWidth(input.serverNicPorts);
+  const activeNicPorts = activeServerNicPorts(input);
+  const serverH = 62;
+  const serverSlotWidth = Math.max(86, serverW + 14);
+  const leafSlotWidth = Math.max(120, switchW + 12);
+  const serverSlots = Math.max(shownServers, shownLeafs);
+  const width = Math.max(920, labelGutter + serverSlots * Math.max(serverSlotWidth, leafSlotWidth) + 150);
+  const height = 500;
+  const contentLeft = labelGutter + DIAGRAM_CONTENT_OFFSET;
+  const contentRight = width - 48;
+  const center = (contentLeft + contentRight) / 2;
+  const spineY = 58;
+  const leafY = 190;
+  const serverY = 360;
+  const spineXs = distribute(center, shownSpines, 126);
+  const leafXs = distribute(center, shownLeafs, Math.max(120, Math.min(160, width / Math.max(shownLeafs, 1) * 0.8)));
+  const serverXs = distribute(center, shownServers, Math.max(serverSlotWidth, Math.min(104, width / Math.max(shownServers, 1) * 0.8)));
+  const podCount = best.podCount || 1;
+  const perPodLeafs = best.perPodLeafs || shownLeafs;
+  const perPodSpines = best.perPodSpines || shownSpines;
+  const lines = [];
+  const switches = [];
+  const servers = [];
+
+  spineXs.forEach((x, index) => {
+    const label = podCount > 1 ? `${fabricGroupLabel(Math.floor(index / perPodSpines), input, best)} Spine ${(index % perPodSpines) + 1}` : `Spine ${index + 1}`;
+    switches.push({ kind: "spine", x, y: spineY, w: switchW, h: switchH, label });
+  });
+
+  leafXs.forEach((leafX, leafIndex) => {
+    const podIndex = Math.floor(leafIndex / perPodLeafs);
+    const spineStart = podIndex * perPodSpines;
+    const spineEnd = Math.min(spineStart + perPodSpines, spineXs.length);
+    spineXs.slice(spineStart, spineEnd).forEach((spineX, localSpineIndex) => {
+      const linkCount = linksForSpine(best.uplinksPerLeaf, perPodSpines, localSpineIndex);
+      for (let linkIndex = 0; linkIndex < linkCount; linkIndex += 1) {
+        const offset = parallelOffset(linkIndex, linkCount, switchW - 28);
+        lines.push({
+          x1: leafX + offset,
+          y1: leafY - switchH / 2,
+          x2: spineX + offset,
+          y2: spineY + switchH / 2,
+          color: leafColor(leafIndex),
+          kind: "uplink",
+          title: `Leaf ${leafIndex + 1} uplink`,
+        });
+      }
+    });
+    const label = podCount > 1 ? `${fabricGroupLabel(Math.floor(leafIndex / perPodLeafs), input, best)} Leaf ${(leafIndex % perPodLeafs) + 1}` : `Leaf ${leafIndex + 1}`;
+    switches.push({ kind: "leaf", x: leafX, y: leafY, w: switchW, h: switchH, label });
+  });
+
+  serverXs.forEach((serverX, serverIndex) => {
+    const nicLeafStart = (serverIndex * activeNicPorts) % best.leafCount;
+    const ports = [];
+    for (let nicIndex = 0; nicIndex < activeNicPorts; nicIndex += 1) {
+      const nicX = nicPortX(serverX, serverW, input.serverNicPorts, nicIndex);
+      const color = nicColor(nicIndex);
+      ports.push({ x: nicX, y: serverY - serverH / 2 + 7, color });
+      serverFabricGroupIndexes(serverIndex, input, best).forEach((groupIndex) => {
+        const localServerIndex = serverLocalIndex(serverIndex, input, best);
+        const leafIndex = podCount > 1
+          ? groupIndex * perPodLeafs + ((localServerIndex * activeNicPorts + nicIndex) % perPodLeafs)
+          : (nicLeafStart + nicIndex) % shownLeafs;
+        lines.push({
+          x1: nicX,
+          y1: serverY - serverH / 2,
+          x2: leafXs[leafIndex],
+          y2: leafY + switchH / 2,
+          color,
+          kind: "link",
+          title: podCount > 1 ? `Node NIC ${nicIndex + 1} ${fabricGroupLabel(groupIndex, input, best)}` : `Node NIC ${nicIndex + 1}`,
+        });
+      });
+    }
+    servers.push({ x: serverX, y: serverY, w: serverW, h: serverH, number: serverIndex + 1, nicCount: input.serverNicPorts, label: `Node #${serverIndex + 1}`, ports });
+  });
+
+  return normalizeGeometryHorizontal({
+    width,
+    height,
+    labels: [],
+    lines,
+    switches,
+    servers,
+    labelGutter,
+  });
 }
 
 function getPptDiagramGeometry({ input, best }) {
@@ -626,4 +727,3 @@ function nicColor(index) {
 function leafColor(index) {
   return LEAF_COLORS[index % LEAF_COLORS.length];
 }
-
