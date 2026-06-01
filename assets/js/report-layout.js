@@ -270,6 +270,7 @@ function getReportInputRows() {
     { type: "section", label: reportTr("sidebar.switchSection") },
     { type: "subsection", label: "Leaf" },
     { label: reportTr("sidebar.leafPorts"), value: fields.switchPorts.value },
+    { label: reportTr("sidebar.leafMinSparePorts"), value: fields.leafMinSparePorts.value },
     { label: reportTr("sidebar.leafLinkSpeed"), value: `${fields.switchLinkSpeed.value} Gbps` },
     { label: reportTr("results.labels.leafTwinPortUsage"), value: getReportLeafTwinUsageText() },
     { label: reportTr("sidebar.leafSpineDisableTwinPort"), value: fields.disableUplinkTwinPort.checked ? reportTr("common.use") : reportTr("common.unused") },

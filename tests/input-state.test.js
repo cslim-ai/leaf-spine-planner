@@ -23,6 +23,7 @@ const validInputs = {
   customLeafCount: 8,
   customSpineCount: 4,
   switchPorts: 64,
+  leafMinSparePorts: 8,
   switchLinkSpeed: 400,
   useTwinPort: false,
   disableUplinkTwinPort: true,
@@ -45,6 +46,7 @@ const validInputs = {
   assertEqual(payload.inputs.NodeCount, 32, "payload should export PascalCase numeric input values");
   assertEqual(payload.inputs.NodeLinkPortCount, 8, "payload should export node link port count");
   assertEqual(payload.inputs.LeafPorts, 64, "payload should export leaf ports");
+  assertEqual(payload.inputs.LeafMinSparePorts, 8, "payload should export leaf minimum spare ports");
   assertEqual(payload.inputs.LeafLinkSpeed, 400, "payload should export leaf link speed");
   assertEqual(payload.inputs.LeafUseTwinPort, false, "payload should export leaf twin-port checkbox");
   assertEqual(payload.inputs.LeafSpineLinkUseTwinPort, false, "payload should export leaf-spine twin-port usage as a positive boolean");
@@ -61,6 +63,7 @@ const validInputs = {
   const parsed = InputState.parsePayload(JSON.stringify(payload));
   assertEqual(parsed.topologyMode, "oversubscribed", "parser should restore topology mode");
   assertEqual(parsed.spineSwitchLinkSpeed, 800, "parser should restore spine speed");
+  assertEqual(parsed.leafMinSparePorts, 8, "parser should restore leaf minimum spare ports");
   assertEqual(parsed.useMultiPods, true, "parser should restore multi-pods checkbox");
 }
 
@@ -77,6 +80,7 @@ const validInputs = {
       CustomLeafCount: 2,
       CustomSpineCount: 2,
       LeafPorts: 64,
+      LeafMinSparePorts: 8,
       LeafLinkSpeed: 400,
       LeafUseTwinPort: false,
       LeafSpineLinkUseTwinPort: true,
@@ -93,6 +97,7 @@ const validInputs = {
   }));
   assertEqual(parsed.serverCount, 8, "parser should convert NodeCount to internal serverCount");
   assertEqual(parsed.switchPorts, 64, "parser should convert LeafPorts to internal switchPorts");
+  assertEqual(parsed.leafMinSparePorts, 8, "parser should convert LeafMinSparePorts to internal leafMinSparePorts");
   assertEqual(parsed.disableUplinkTwinPort, false, "parser should convert LeafSpineLinkUseTwinPort to internal disableUplinkTwinPort");
   assertEqual(parsed.topologyMode, "nonblocking", "parser should convert TopologyMode to internal topologyMode");
 }

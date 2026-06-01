@@ -15,6 +15,7 @@ const LeafSpineInputState = (() => {
     customLeafCount: "CustomLeafCount",
     customSpineCount: "CustomSpineCount",
     switchPorts: "LeafPorts",
+    leafMinSparePorts: "LeafMinSparePorts",
     switchLinkSpeed: "LeafLinkSpeed",
     useTwinPort: "LeafUseTwinPort",
     disableUplinkTwinPort: "LeafSpineLinkUseTwinPort",
@@ -36,6 +37,7 @@ const LeafSpineInputState = (() => {
     "customLeafCount",
     "customSpineCount",
     "switchPorts",
+    "leafMinSparePorts",
     "switchLinkSpeed",
     "spineSwitchPorts",
     "spineSwitchLinkSpeed",
@@ -60,6 +62,7 @@ const LeafSpineInputState = (() => {
     "CustomLeafCount",
     "CustomSpineCount",
     "LeafPorts",
+    "LeafMinSparePorts",
     "LeafLinkSpeed",
     "SpinePorts",
     "SpineLinkSpeed",
@@ -103,7 +106,11 @@ const LeafSpineInputState = (() => {
     if (!inputs || typeof inputs !== "object") {
       throw new Error("입력값 데이터가 없습니다.");
     }
-    const source = { disableUplinkTwinPort: false, ...inputs };
+    const source = {
+      disableUplinkTwinPort: false,
+      leafMinSparePorts: 0,
+      ...inputs,
+    };
     const normalized = {};
     INTERNAL_NUMBER_FIELDS.forEach((key) => {
       const value = Number(source[key]);
@@ -129,7 +136,11 @@ const LeafSpineInputState = (() => {
     if (!inputs || typeof inputs !== "object") {
       throw new Error("입력값 데이터가 없습니다.");
     }
-    const source = { LeafSpineLinkUseTwinPort: true, ...normalizeExportAliases(inputs) };
+    const source = {
+      LeafSpineLinkUseTwinPort: true,
+      LeafMinSparePorts: 0,
+      ...normalizeExportAliases(inputs),
+    };
     const normalized = {};
     EXPORT_NUMBER_FIELDS.forEach((key) => {
       const value = Number(source[key]);

@@ -29,6 +29,7 @@ const LeafSpineCalculator = (() => {
     const switchLogicalLinkSpeed = effectiveSwitchLinkSpeed(input);
     const leafPorts = leafSwitchPorts(input);
     const spinePorts = spineSwitchPorts(input);
+    const requiredLeafSparePorts = leafMinSparePorts(input);
     const targetRatio = input.mode === "nonblocking" ? 1 : input.targetOversub;
     const minimumLeafs = 2;
     const minimumSpines = 2;
@@ -62,7 +63,7 @@ const LeafSpineCalculator = (() => {
       const physicalDownlinkPorts = Math.ceil(downlinks / serverLeafTwinFactor(input));
       failureStats.maxPhysicalDownlinkPorts = Math.max(failureStats.maxPhysicalDownlinkPorts, physicalDownlinkPorts);
       failureStats.minPhysicalDownlinkPorts = Math.min(failureStats.minPhysicalDownlinkPorts, physicalDownlinkPorts);
-      if (physicalDownlinkPorts >= leafPorts) {
+      if (physicalDownlinkPorts >= leafPorts - requiredLeafSparePorts) {
         failureStats.leafServerPortShortage += 1;
         continue;
       }
@@ -78,7 +79,7 @@ const LeafSpineCalculator = (() => {
       const logicalPortsPerLeaf = downlinks + uplinksPerLeaf;
       failureStats.maxUsedPortsPerLeaf = Math.max(failureStats.maxUsedPortsPerLeaf, usedPortsPerLeaf);
       failureStats.minUsedPortsPerLeaf = Math.min(failureStats.minUsedPortsPerLeaf, usedPortsPerLeaf);
-      if (usedPortsPerLeaf > leafPorts) {
+      if (usedPortsPerLeaf + requiredLeafSparePorts > leafPorts) {
         failureStats.leafTotalPortShortage += 1;
         continue;
       }
@@ -166,6 +167,7 @@ const LeafSpineCalculator = (() => {
           balancedLeafSpineLinks,
           balancedSpinePorts,
           unusedPortsPerLeaf: leafPorts - usedPortsPerLeaf,
+          requiredLeafSparePorts,
           usedPortsPerSpine,
           logicalLinksPerSpine,
           unusedPortsPerSpine: spinePorts - usedPortsPerSpine,
@@ -271,6 +273,10 @@ const LeafSpineCalculator = (() => {
 
   function leafSwitchLinkSpeed(input) {
     return input.leafSwitchLinkSpeed ?? input.switchLinkSpeed;
+  }
+
+  function leafMinSparePorts(input) {
+    return Math.max(0, Math.floor(Number(input.leafMinSparePorts) || 0));
   }
 
   function spineSwitchLinkSpeed(input) {
@@ -449,6 +455,10 @@ const LeafSpineCalculator = (() => {
     const logicalSwitchPorts = effectiveSwitchPorts(input);
     const leafPorts = leafSwitchPorts(input);
     const spinePorts = spineSwitchPorts(input);
+    const requiredLeafSparePorts = leafMinSparePorts(input);
+    const leafSpareRequirementText = requiredLeafSparePorts > 0
+      ? ` Leaf당 예비 포트 ${requiredLeafSparePorts.toLocaleString()}개를 별도로 남겨야 합니다.`
+      : "";
     const modeText = input.mode === "oversubscribed"
       ? `목표 1:${input.targetOversub} oversubscription`
       : "non-blocking";
@@ -458,13 +468,13 @@ const LeafSpineCalculator = (() => {
       const requiredDownlinkPorts = Number.isFinite(stats.minPhysicalDownlinkPorts)
         ? stats.minPhysicalDownlinkPorts
         : stats.maxPhysicalDownlinkPorts;
-      reasons.push(`Leaf 노드 다운링크 포트 부족: 노드 연결 링크 ${totalServerLinks.toLocaleString()}개를 Leaf에 분산해도 Leaf당 최소 ${requiredDownlinkPorts.toLocaleString()}개의 물리 포트가 필요합니다. 현재 Leaf는 ${leafPorts.toLocaleString()}포트입니다.`);
+      reasons.push(`Leaf 노드 다운링크 포트 부족: 노드 연결 링크 ${totalServerLinks.toLocaleString()}개를 Leaf에 분산해도 Leaf당 최소 ${requiredDownlinkPorts.toLocaleString()}개의 물리 포트가 필요합니다.${leafSpareRequirementText} 현재 Leaf는 ${leafPorts.toLocaleString()}포트입니다.`);
     }
     if (stats.leafTotalPortShortage > 0 && stats.leafTotalFit === 0) {
       const requiredLeafPorts = Number.isFinite(stats.minUsedPortsPerLeaf)
         ? stats.minUsedPortsPerLeaf
         : stats.maxUsedPortsPerLeaf;
-      reasons.push(`Leaf 총 포트 부족: Leaf당 노드 다운링크와 Spine 업링크를 합산하면 최소 ${requiredLeafPorts.toLocaleString()}개의 물리 포트가 필요합니다. 현재 Leaf는 ${leafPorts.toLocaleString()}포트입니다.`);
+      reasons.push(`Leaf 총 포트 부족: Leaf당 노드 다운링크와 Spine 업링크를 합산하면 최소 ${requiredLeafPorts.toLocaleString()}개의 물리 포트가 필요합니다.${leafSpareRequirementText} 현재 Leaf는 ${leafPorts.toLocaleString()}포트입니다.`);
     }
     if (stats.spinePortShortage > 0 || stats.fullMeshShortage > 0) {
       const spineDetail = stats.maxUsedPortsPerSpine > 0

@@ -47,6 +47,27 @@ function withInput(overrides) {
 }
 
 {
+  const baseline = calculate(withInput({ leafMinSparePorts: 0 }));
+  const reserved = calculate(withInput({ leafMinSparePorts: 8 }));
+  assert(baseline.feasible && reserved.feasible, "leaf spare port reservation inputs should be feasible");
+  assertEqual(baseline.best.leafCount, 2, "zero leaf spare port reservation should preserve the existing default leaf count");
+  assert(reserved.best.unusedPortsPerLeaf >= 8, "leaf spare port reservation should leave the requested physical spare ports per leaf");
+  assert(reserved.best.leafCount > baseline.best.leafCount, "leaf spare port reservation should increase leaf count when the default fabric has no spare leaf ports");
+}
+
+{
+  const result = calculate(withInput({
+    useCustomSwitchCounts: true,
+    customLeafCount: 2,
+    customSpineCount: 2,
+    leafMinSparePorts: 8,
+  }));
+  assert(!result.feasible, "custom leaf count should be infeasible when requested leaf spare ports cannot be preserved");
+  assert(result.infeasibleReason.includes("Leaf"), "leaf spare port infeasible reason should identify leaf constraints");
+  assert(result.infeasibleReason.includes("예비 포트 8"), "leaf spare port infeasible reason should include the requested spare port count");
+}
+
+{
   const input = withInput({
     useCustomSwitchCounts: true,
     customLeafCount: 4,

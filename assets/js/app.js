@@ -29,6 +29,7 @@ const fields = {
   customLeafCount: document.querySelector("#customLeafCount"),
   customSpineCount: document.querySelector("#customSpineCount"),
   switchPorts: document.querySelector("#switchPorts"),
+  leafMinSparePorts: document.querySelector("#leafMinSparePorts"),
   switchLinkSpeed: document.querySelector("#switchLinkSpeed"),
   useTwinPort: document.querySelector("#useTwinPort"),
   disableUplinkTwinPort: document.querySelector("#disableUplinkTwinPort"),
@@ -343,6 +344,7 @@ function collectInputConfig() {
     customLeafCount: toInt(fields.customLeafCount.value),
     customSpineCount: toInt(fields.customSpineCount.value),
     switchPorts: toInt(fields.switchPorts.value),
+    leafMinSparePorts: toNonNegativeInt(fields.leafMinSparePorts.value),
     switchLinkSpeed: toFloat(fields.switchLinkSpeed.value),
     useTwinPort: fields.useTwinPort.checked,
     disableUplinkTwinPort: fields.disableUplinkTwinPort.checked,
@@ -366,6 +368,7 @@ function applyInputConfig(input) {
   fields.customLeafCount.value = input.customLeafCount;
   fields.customSpineCount.value = input.customSpineCount;
   fields.switchPorts.value = input.switchPorts;
+  fields.leafMinSparePorts.value = input.leafMinSparePorts || 0;
   fields.switchLinkSpeed.value = input.switchLinkSpeed;
   fields.useTwinPort.checked = input.useTwinPort;
   fields.disableUplinkTwinPort.checked = Boolean(input.disableUplinkTwinPort);
@@ -410,6 +413,7 @@ function readInput() {
     customLeafCount: toInt(fields.customLeafCount.value),
     customSpineCount: toInt(fields.customSpineCount.value),
     switchPorts: toInt(fields.switchPorts.value),
+    leafMinSparePorts: toNonNegativeInt(fields.leafMinSparePorts.value),
     switchLinkSpeed: toFloat(fields.switchLinkSpeed.value),
     leafSwitchPorts: toInt(fields.switchPorts.value),
     leafSwitchLinkSpeed: toFloat(fields.switchLinkSpeed.value),
@@ -436,6 +440,7 @@ function resetInputsToDefaults() {
   fields.customLeafCount.value = "2";
   fields.customSpineCount.value = "2";
   fields.switchPorts.value = "64";
+  fields.leafMinSparePorts.value = "0";
   fields.switchLinkSpeed.value = "400";
   fields.useTwinPort.checked = false;
   fields.disableUplinkTwinPort.checked = false;
@@ -528,6 +533,10 @@ function toInt(value) {
   return Math.max(1, Number.parseInt(value, 10) || 1);
 }
 
+function toNonNegativeInt(value) {
+  return Math.max(0, Number.parseInt(value, 10) || 0);
+}
+
 function toFloat(value) {
   return Math.max(1, Number.parseFloat(value) || 1);
 }
@@ -593,6 +602,7 @@ function render(result) {
     [tr("results.labels.totalLeafSpineLinks"), `${formatCount(best.totalLeafUplinks)} (${formatGbps(totalLeafSpineUplinkBandwidth)})`],
     ["group", tr("results.groups.leafPortUsage")],
     [tr("results.labels.usedPortsPerLeaf"), tr("results.values.logicalPorts", { used: best.usedPortsPerLeaf.toLocaleString(), capacity: best.switchPortCapacity.toLocaleString(), logical: best.logicalPortsPerLeaf.toLocaleString() })],
+    [tr("results.labels.requiredSparePortsPerLeaf"), formatCount(best.requiredLeafSparePorts || 0)],
     [tr("results.labels.sparePortsPerLeaf"), formatCount(best.unusedPortsPerLeaf)],
     [tr("results.labels.totalLeafUsedPorts"), formatCount(totalLeafUsedPorts)],
     [tr("results.labels.totalLeafSparePorts"), formatCount(totalLeafUnusedPorts)],

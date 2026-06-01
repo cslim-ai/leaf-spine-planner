@@ -19,6 +19,7 @@
       <input id="customLeafCount" value="2" />
       <input id="customSpineCount" value="2" />
       <input id="switchPorts" value="64" />
+      <input id="leafMinSparePorts" value="0" />
       <input id="switchLinkSpeed" value="400" />
       <input id="useTwinPort" type="checkbox" />
       <input id="spineSameAsLeaf" type="checkbox" checked />
@@ -76,7 +77,7 @@
         <button type="button" data-export-value="pdf"></button>
       </div>
     </div>
-    <div id="inputTransferMenu">
+    <div id="inputTransferMenu" class="hidden">
       <button id="importExportInputs" class="reset-inputs" type="button"></button>
       <div>
         <button type="button" data-export-value="export-json"></button>
@@ -111,15 +112,14 @@
         assert(typeof LeafSpineReport.makeSvg === "function", "report namespace is available");
         assert(typeof LeafSpinePortMap.build === "function", "port map namespace is available");
         assert(document.querySelector("#importExportInputs"), "import/export inputs button is available");
+        assert(document.querySelector("#inputTransferMenu").classList.contains("hidden"), "import/export inputs button is hidden while logic remains available");
         assert(
           Boolean(document.querySelector("#useMultiPlanar").compareDocumentPosition(document.querySelector("#importExportInputs")) & Node.DOCUMENT_POSITION_FOLLOWING),
           "form action buttons follow dynamic configuration rows in DOM order"
         );
         document.querySelector("#useMultiPlanar").checked = true;
         document.querySelector("#useMultiPlanar").dispatchEvent(new Event("change", { bubbles: true }));
-        const importExportButton = document.querySelector("#importExportInputs");
-        const importExportRect = importExportButton.getBoundingClientRect();
-        assert(importExportRect.width > 0 && importExportRect.height > 0, "import/export button remains visible after multi-planar toggle");
+        assert(document.querySelector("#importExportInputs"), "import/export button DOM remains after multi-planar toggle");
         const segmented = document.querySelector(".segmented");
         const oversubInput = document.querySelector("input[name='topologyMode'][value='oversubscribed']");
         const segmentedRect = segmented.getBoundingClientRect();

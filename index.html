@@ -68,6 +68,10 @@
               <input id="switchPorts" type="number" min="2" step="1" value="64" required />
             </label>
             <label>
+              <span data-i18n="sidebar.leafMinSparePorts">Leaf당 최소 예비 포트 수</span>
+              <input id="leafMinSparePorts" type="number" min="0" step="1" value="0" required />
+            </label>
+            <label>
               <span data-i18n="sidebar.leafLinkSpeed">Leaf 포트당 링크 스피드</span>
               <div class="inline-field">
                 <input id="switchLinkSpeed" type="number" min="1" step="1" value="400" required />
@@ -149,7 +153,7 @@
                 <button type="button" data-export-value="pdf">PDF</button>
               </div>
             </div>
-            <div id="inputTransferMenu" class="export-menu input-transfer-menu">
+            <div id="inputTransferMenu" class="export-menu input-transfer-menu hidden">
               <button id="importExportInputs" class="reset-inputs" type="button" data-i18n="sidebar.inputTransfer">내보내기/불러오기</button>
               <div class="export-menu-list" role="menu" aria-label="입력값 내보내기 불러오기" data-i18n-aria-label="sidebar.inputTransferAriaLabel">
                 <button type="button" data-export-value="export-json" data-i18n="sidebar.exportInputsJson">구성 값 내보내기(JSON)</button>
