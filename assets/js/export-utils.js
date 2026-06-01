@@ -9,8 +9,8 @@ const dynamicScriptPromises = new Map();
 async function ensurePptxGenLoaded() {
   if (typeof PptxGenJS === "function") return;
   if (!pptxGenLoadPromise) {
-    pptxGenLoadPromise = loadScriptWithFallback("assets/vendor/jszip.min.js", "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js")
-      .then(() => loadScriptWithFallback("assets/vendor/pptxgen.min.js", "https://cdn.jsdelivr.net/npm/pptxgenjs@4.0.1/dist/pptxgen.min.js"))
+    pptxGenLoadPromise = loadScriptOnce("assets/vendor/jszip.min.js")
+      .then(() => loadScriptOnce("assets/vendor/pptxgen.min.js"))
       .then(() => {
         if (typeof PptxGenJS !== "function") {
           throw new Error("PptxGenJS global was not created.");
@@ -22,10 +22,6 @@ async function ensurePptxGenLoaded() {
       });
   }
   await pptxGenLoadPromise;
-}
-
-function loadScriptWithFallback(localSrc, fallbackSrc) {
-  return loadScriptOnce(localSrc).catch(() => loadScriptOnce(fallbackSrc));
 }
 
 function loadScriptOnce(src) {
