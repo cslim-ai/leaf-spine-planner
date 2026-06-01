@@ -292,6 +292,14 @@ function applyStaticText() {
   document.querySelectorAll("[data-i18n-aria-label]").forEach((element) => {
     element.setAttribute("aria-label", tr(element.dataset.i18nAriaLabel));
   });
+  renderEmailContacts();
+}
+
+function renderEmailContacts() {
+  document.querySelectorAll("[data-email-user][data-email-domain][data-email-tld]").forEach((element) => {
+    const { emailUser, emailDomain, emailTld } = element.dataset;
+    element.textContent = `${emailUser}@${emailDomain}.${emailTld}`;
+  });
 }
 
 function exportDiagramByFormat(format) {

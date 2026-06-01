@@ -15,6 +15,7 @@ const LeafSpineI18n = (() => {
         appTitle: "Leaf-Spine Planner",
         credit: "Copyright © 2026 Chaeseong Lim.",
         footerNotice: "본 소프트웨어 및 그 기반 알고리즘은 명시적인 서면 허가 없이 복사, 수정, 배포, 리버스 엔지니어링 또는 파생 저작물 제작에 사용할 수 없습니다.",
+        footerVersion: "Ver. 1.0",
       },
       language: {
         label: "언어",
@@ -240,6 +241,7 @@ const LeafSpineI18n = (() => {
         appTitle: "Leaf-Spine Planner",
         credit: "Copyright © 2026 Chaeseong Lim.",
         footerNotice: "This software and its underlying algorithms may not be copied, modified, distributed, reverse engineered, or used to create derivative works without explicit written permission.",
+        footerVersion: "Ver. 1.0",
       },
       language: {
         label: "Language",

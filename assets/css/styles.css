@@ -85,25 +85,49 @@ body {
   max-width: 1320px;
   margin: 0;
   height: 100vh;
-  padding: 20px 20px 54px;
+  padding: 20px 20px 74px;
   overflow: hidden;
 }
 
-.app-footer-notice {
+.app-footer {
   position: absolute;
   right: 20px;
   bottom: 20px;
   left: 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
   margin: 0;
   color: #000;
   font-size: 12px;
   font-weight: 500;
   line-height: 1.2;
+}
+
+.app-footer-version {
+  flex: 0 0 auto;
+}
+
+.app-footer-right {
+  min-width: 0;
   text-align: right;
+}
+
+.app-footer-notice,
+.app-footer-contact {
+  margin: 0;
+}
+
+.app-footer-notice {
   white-space: nowrap;
 }
 
-.app-footer-notice::before {
+.app-footer-contact {
+  margin-top: 2px;
+}
+
+.app-footer-notice-text::before {
   content: "\203B";
   font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Segoe UI Symbol", sans-serif;
   margin-right: 0.35em;
@@ -1012,14 +1036,18 @@ svg {
   .app {
     height: auto;
     min-height: 100vh;
-    padding: 14px 14px 68px;
+    padding: 14px 14px 88px;
     overflow: visible;
   }
 
-  .app-footer-notice {
+  .app-footer {
     right: 14px;
     bottom: 20px;
     left: 14px;
+    gap: 12px;
+  }
+
+  .app-footer-notice {
     white-space: normal;
   }
 
