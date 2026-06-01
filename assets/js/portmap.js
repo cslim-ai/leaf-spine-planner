@@ -180,50 +180,41 @@ function makePortMapHtml(portMap) {
         display: flex;
         flex-direction: column;
       }
-      header {
-        z-index: 2;
+      .toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 1;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 18px;
-        padding: 16px 22px 14px;
+        gap: 12px;
+        padding: 12px 16px;
         border-bottom: 1px solid #c8d8ee;
-        background: rgba(255, 255, 255, 0.96);
+        background: rgba(255, 255, 255, 0.94);
         flex: 0 0 auto;
       }
-      .title-lockup {
-        display: inline-grid;
-        justify-items: end;
-      }
-      h1 {
-        margin: 0;
-        color: #2563eb;
-        font-size: 26px;
-        line-height: 1.2;
-      }
-      .credit {
-        margin-top: 3px;
-        color: #5b6b86;
-        font-size: 13px;
-        font-weight: 800;
+      .toolbar strong {
+        color: #0f172a;
+        font-size: 20px;
+        white-space: nowrap;
       }
       .actions {
         display: flex;
-        gap: 6px;
+        gap: 16px;
         align-items: center;
         flex-wrap: wrap;
       }
       button {
-        min-height: 32px;
+        min-height: 28px;
         border: 1px solid #c8d8ee;
         border-radius: 6px;
         background: #fff;
         color: #1d4ed8;
         font: inherit;
-        font-size: 14px;
+        font-size: 12px;
         font-weight: 900;
         cursor: pointer;
-        padding: 0 12px;
+        padding: 0;
       }
       button:hover {
         background: #dbeafe;
@@ -263,13 +254,14 @@ function makePortMapHtml(portMap) {
       }
       .export-menu-list button {
         width: 100%;
-        min-height: 30px;
+        min-height: 28px;
         border: 0;
         padding: 0 10px;
         background: #fff;
         color: #1d4ed8;
         text-align: left;
-        font-size: 14px;
+        font-size: 12px;
+        font-weight: 900;
       }
       .export-menu-list button:hover {
         background: #dbeafe;
@@ -310,6 +302,32 @@ function makePortMapHtml(portMap) {
         color: #92400e;
         font-size: 14px;
         font-weight: 800;
+        flex: 0 0 auto;
+      }
+      .filters {
+        display: grid;
+        grid-template-columns: minmax(220px, 1.2fr) 150px repeat(4, minmax(110px, 1fr));
+        gap: 8px;
+        margin-bottom: 10px;
+        flex: 0 0 auto;
+      }
+      .filters input,
+      .filters select {
+        width: 100%;
+        min-height: 34px;
+        border: 1px solid #c8d8ee;
+        border-radius: 6px;
+        padding: 0 10px;
+        color: #0f172a;
+        font: inherit;
+        font-size: 13px;
+        background: #fff;
+      }
+      .filter-count {
+        margin: 0 0 10px;
+        color: #5b6b86;
+        font-size: 13px;
+        font-weight: 700;
         flex: 0 0 auto;
       }
       .table-wrap {
@@ -358,15 +376,13 @@ function makePortMapHtml(portMap) {
       }
       @media (max-width: 900px) {
         .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
     </style>
   </head>
   <body>
-    <header>
-      <div class="title-lockup">
-        <h1>${escapeXml(tr("portMap.title"))}</h1>
-        <div class="credit">${escapeXml(tr("meta.credit"))}</div>
-      </div>
+    <div class="toolbar">
+      <strong>Port Map</strong>
       <div class="actions">
         <div id="portMapExportMenu" class="export-menu">
           <button id="exportPortMap" type="button">${escapeXml(tr("portMap.exportButton"))}</button>
@@ -376,12 +392,25 @@ function makePortMapHtml(portMap) {
           </div>
         </div>
       </div>
-    </header>
+    </div>
     <section class="summary">
       ${portMap.summary.map(([label, value]) => `<div class="metric"><span>${escapeXml(label)}</span><strong>${escapeXml(value)}</strong></div>`).join("")}
     </section>
     <main>
       ${warning}
+      <div class="filters" role="search" aria-label="${escapeXml(tr("portMap.filters.title"))}">
+        <input id="portMapSearch" type="search" placeholder="${escapeXml(tr("portMap.filters.search"))}" />
+        <select id="portMapSectionFilter">
+          <option value="">${escapeXml(tr("portMap.filters.allSegments"))}</option>
+          <option value="Node-Leaf">Node-Leaf</option>
+          <option value="Leaf-Spine">Leaf-Spine</option>
+        </select>
+        <input id="portMapPodFilter" type="search" placeholder="${escapeXml(tr("portMap.filters.pod"))}" />
+        <input id="portMapNodeFilter" type="search" placeholder="${escapeXml(tr("portMap.filters.node"))}" />
+        <input id="portMapLeafFilter" type="search" placeholder="${escapeXml(tr("portMap.filters.leaf"))}" />
+        <input id="portMapSpineFilter" type="search" placeholder="${escapeXml(tr("portMap.filters.spine"))}" />
+      </div>
+      <p id="portMapFilterCount" class="filter-count"></p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -403,7 +432,17 @@ function makePortMapHtml(portMap) {
     </main>
     <script>
       const portMapRows = ${serializedRows};
+      portMapRows.forEach((row, index) => { row.originalIndex = index; });
       const tbody = document.querySelector("#portMapBody");
+      const searchInput = document.querySelector("#portMapSearch");
+      const sectionFilter = document.querySelector("#portMapSectionFilter");
+      const podFilter = document.querySelector("#portMapPodFilter");
+      const nodeFilter = document.querySelector("#portMapNodeFilter");
+      const leafFilter = document.querySelector("#portMapLeafFilter");
+      const spineFilter = document.querySelector("#portMapSpineFilter");
+      const filterCount = document.querySelector("#portMapFilterCount");
+      let visibleRows = portMapRows;
+      let renderToken = 0;
       const podTones = [
         { text: "#1d4ed8", bg: "#eff6ff" },
         { text: "#047857", bg: "#ecfdf5" },
@@ -424,14 +463,15 @@ function makePortMapHtml(portMap) {
         td.textContent = value;
         tr.appendChild(td);
       }
-      function renderRowsChunk(start = 0) {
+      function renderRowsChunk(start = 0, token = renderToken) {
+        if (token !== renderToken) return;
         const fragment = document.createDocumentFragment();
-        const end = Math.min(start + 600, portMapRows.length);
+        const end = Math.min(start + 600, visibleRows.length);
         for (let index = start; index < end; index += 1) {
-          const row = portMapRows[index];
+          const row = visibleRows[index];
           const tr = document.createElement("tr");
           const tone = podTones[(row.podIndex || 0) % podTones.length];
-          appendCell(tr, index + 1);
+          appendCell(tr, row.originalIndex + 1);
           appendCell(tr, row.section, "section " + sectionClass(row.section));
           appendCell(tr, row.pod, "pod-cell", row.pod === "-" ? "" : "color:" + tone.text + "; background:" + tone.bg + ";");
           appendCell(tr, row.sourceDevice);
@@ -443,11 +483,50 @@ function makePortMapHtml(portMap) {
           fragment.appendChild(tr);
         }
         tbody.appendChild(fragment);
-        if (end < portMapRows.length) {
-          requestAnimationFrame(() => renderRowsChunk(end));
+        if (end < visibleRows.length) {
+          requestAnimationFrame(() => renderRowsChunk(end, token));
         }
       }
-      renderRowsChunk();
+      function normalize(value) {
+        return String(value || "").trim().toLowerCase();
+      }
+      function rowContains(row, query) {
+        if (!query) return true;
+        return [row.section, row.pod, row.sourceDevice, row.sourcePort, row.targetDevice, row.targetPort, row.speed, row.group]
+          .some((value) => normalize(value).includes(query));
+      }
+      function rowDeviceContains(row, needle, prefix) {
+        if (!needle) return true;
+        return [row.sourceDevice, row.targetDevice]
+          .filter((value) => normalize(value).startsWith(prefix))
+          .some((value) => normalize(value).includes(needle));
+      }
+      function applyFilters() {
+        const query = normalize(searchInput.value);
+        const section = sectionFilter.value;
+        const pod = normalize(podFilter.value);
+        const node = normalize(nodeFilter.value);
+        const leaf = normalize(leafFilter.value);
+        const spine = normalize(spineFilter.value);
+        visibleRows = portMapRows.filter((row) => {
+          if (section && row.section !== section) return false;
+          if (pod && !normalize(row.pod).includes(pod)) return false;
+          if (!rowContains(row, query)) return false;
+          if (!rowDeviceContains(row, node, "node")) return false;
+          if (!rowDeviceContains(row, leaf, "leaf") && !rowDeviceContains(row, leaf, "pod") && leaf) return false;
+          if (!rowDeviceContains(row, spine, "spine") && !rowDeviceContains(row, spine, "pod") && spine) return false;
+          return true;
+        });
+        filterCount.textContent = ${JSON.stringify(tr("portMap.filters.count"))}.replace("{visible}", visibleRows.length.toLocaleString()).replace("{total}", portMapRows.length.toLocaleString());
+        tbody.innerHTML = "";
+        renderToken += 1;
+        requestAnimationFrame(() => renderRowsChunk(0, renderToken));
+      }
+      [searchInput, sectionFilter, podFilter, nodeFilter, leafFilter, spineFilter].forEach((field) => {
+        field.addEventListener("input", applyFilters);
+        field.addEventListener("change", applyFilters);
+      });
+      applyFilters();
       function runExport(name, format) {
         if (!window.opener) {
           alert(${JSON.stringify(tr("portMap.notConnectedAlert"))});

@@ -34,7 +34,7 @@ function makeDiagram({ input, best }) {
   const nodes = [];
 
   spineXs.forEach((x, i) => {
-    nodes.push(switchNode("spine", x, spineY, switchW, switchH, `Spine ${i + 1}`));
+    nodes.push(switchNode("spine", x, spineY, switchW, switchH, `Spine ${i + 1}`, { device: `Spine ${i + 1}` }));
   });
 
   leafXs.forEach((leafX, leafIndex) => {
@@ -42,6 +42,8 @@ function makeDiagram({ input, best }) {
       const linkCount = linksForSpine(best.uplinksPerLeaf, best.spines, spineIndex);
       for (let linkIndex = 0; linkIndex < linkCount; linkIndex += 1) {
         const offset = parallelOffset(linkIndex, linkCount, switchW - 28);
+        const leafDevice = `Leaf ${leafIndex + 1}`;
+        const spineDevice = `Spine ${spineIndex + 1}`;
         lines.push(line(
           leafX + offset,
           leafY - switchH / 2,
@@ -50,13 +52,15 @@ function makeDiagram({ input, best }) {
           "uplink",
           {
             stroke: leafColor(leafIndex),
-            title: `Leaf ${leafIndex + 1} uplink`,
+            title: `${leafDevice} uplink`,
+            source: leafDevice,
+            target: spineDevice,
           },
         ));
       }
     });
 
-    nodes.push(switchNode("leaf", leafX, leafY, switchW, switchH, `Leaf ${leafIndex + 1}`));
+    nodes.push(switchNode("leaf", leafX, leafY, switchW, switchH, `Leaf ${leafIndex + 1}`, { device: `Leaf ${leafIndex + 1}` }));
   });
 
   serverXs.forEach((serverX, serverIndex) => {
@@ -66,6 +70,8 @@ function makeDiagram({ input, best }) {
     for (let nicIndex = 0; nicIndex < activeNicPorts; nicIndex += 1) {
       const leafIndex = (nicLeafStart + nicIndex) % shownLeafs;
       const nicX = nicPortX(serverX, serverW, input.serverNicPorts, nicIndex);
+      const nodeDevice = `Node #${serverNumber}`;
+      const leafDevice = `Leaf ${leafIndex + 1}`;
       lines.push(line(
         nicX,
         serverY - serverH / 2,
@@ -75,6 +81,8 @@ function makeDiagram({ input, best }) {
         {
           stroke: nicColor(nicIndex),
           title: `Node NIC ${nicIndex + 1}`,
+          source: nodeDevice,
+          target: leafDevice,
         },
       ));
     }
@@ -98,11 +106,11 @@ function makeDiagramFromGeometry(geometry) {
     item.x2,
     item.y2,
     item.kind || "link",
-    { stroke: item.color, title: item.title },
+    { stroke: item.color, title: item.title, source: item.source, target: item.target },
   ));
   const nodes = [
-    ...geometry.switches.map((sw) => switchNode(sw.kind, sw.x, sw.y, sw.w, sw.h, sw.label)),
-    ...geometry.servers.map((server) => serverNode(server.x, server.y, server.w, server.h, server.number, server.nicCount, server.label)),
+    ...geometry.switches.map((sw) => switchNode(sw.kind, sw.x, sw.y, sw.w, sw.h, sw.label, { device: sw.device || sw.label })),
+    ...geometry.servers.map((server) => serverNode(server.x, server.y, server.w, server.h, server.number, server.nicCount, server.label, { device: server.device || server.label })),
     ...(geometry.ellipsis || []).map((item) => ellipsisNode(item.x, item.y, item.w, item.h, item.label)),
   ];
 
@@ -329,6 +337,23 @@ function openDiagramWindow() {
         font-size: 12px;
         font-weight: 900;
       }
+      [data-device] {
+        cursor: pointer;
+      }
+      .is-dimmed {
+        opacity: 0.2;
+      }
+      [data-device].is-selected {
+        opacity: 1;
+      }
+      [data-device].is-selected .node-label-bg {
+        stroke: #2563eb;
+        stroke-width: 1.6;
+      }
+      [data-source][data-target].is-highlighted {
+        opacity: 1;
+        stroke-width: 2;
+      }
     </style>
   </head>
   <body>
@@ -379,6 +404,7 @@ function openDiagramWindow() {
       let zoom = 1;
       let pan = { x: 0, y: 0 };
       let drag = null;
+      let suppressNextClick = false;
 
       function trim(value) {
         return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/0+$/, "").replace(/\\.$/, "");
@@ -470,8 +496,7 @@ function openDiagramWindow() {
         const viewport = viewportSize();
         const bounds = contentBounds();
         const targetWidth = Math.max(1, bounds.width + fitPadding * 2);
-        const targetHeight = Math.max(1, bounds.height + fitPadding * 2);
-        zoom = Math.min(maxZoom, Math.max(minZoom, Math.min(viewport.width / targetWidth, viewport.height / targetHeight)));
+        zoom = Math.min(maxZoom, Math.max(minZoom, viewport.width / targetWidth));
         const size = viewBoxSize();
         pan = {
           x: bounds.x + bounds.width / 2 - size.width / 2,
@@ -481,6 +506,8 @@ function openDiagramWindow() {
       }
 
       function contentBounds() {
+        const elementBounds = diagramElementBounds();
+        if (elementBounds) return elementBounds;
         try {
           const bbox = svg.getBBox();
           if (bbox.width > 0 && bbox.height > 0) return bbox;
@@ -488,6 +515,30 @@ function openDiagramWindow() {
           // Ignore transient layout states before the SVG is measurable.
         }
         return { x: 0, y: 0, width: baseWidth, height: baseHeight };
+      }
+
+      function diagramElementBounds() {
+        const boxes = Array.from(svg.querySelectorAll(".node, .link, .uplink"))
+          .map((element) => {
+            try {
+              const box = element.getBBox();
+              return box.width > 0 && box.height > 0 ? box : null;
+            } catch (error) {
+              return null;
+            }
+          })
+          .filter(Boolean);
+        if (!boxes.length) return null;
+        const minX = Math.min(...boxes.map((box) => box.x));
+        const minY = Math.min(...boxes.map((box) => box.y));
+        const maxX = Math.max(...boxes.map((box) => box.x + box.width));
+        const maxY = Math.max(...boxes.map((box) => box.y + box.height));
+        return {
+          x: minX,
+          y: minY,
+          width: maxX - minX,
+          height: maxY - minY,
+        };
       }
 
       function centeredPan() {
@@ -504,23 +555,75 @@ function openDiagramWindow() {
         event.preventDefault();
         if (event.pointerId !== undefined && viewer.setPointerCapture) viewer.setPointerCapture(event.pointerId);
         viewer.classList.add("is-dragging");
-        drag = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, panX: pan.x, panY: pan.y };
+        drag = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, panX: pan.x, panY: pan.y, target: event.target, moved: false };
       }
 
       function moveDrag(event) {
         if (!drag) return;
         if (drag.pointerId !== undefined && event.pointerId !== drag.pointerId) return;
+        const deltaX = event.clientX - drag.startX;
+        const deltaY = event.clientY - drag.startY;
+        if (Math.hypot(deltaX, deltaY) > 3) drag.moved = true;
         const scale = unitsPerPixel();
-        pan.x = drag.panX - (event.clientX - drag.startX) * scale.x;
-        pan.y = drag.panY - (event.clientY - drag.startY) * scale.y;
+        pan.x = drag.panX - deltaX * scale.x;
+        pan.y = drag.panY - deltaY * scale.y;
         applyView();
       }
 
       function endDrag(event) {
         if (!drag) return;
         if (drag.pointerId !== undefined && event.pointerId !== drag.pointerId) return;
+        const finishedDrag = drag;
         viewer.classList.remove("is-dragging");
         drag = null;
+        if (finishedDrag.moved) {
+          suppressNextClick = true;
+          setTimeout(() => { suppressNextClick = false; }, 120);
+          return;
+        }
+        highlightTarget(finishedDrag.target);
+        suppressNextClick = true;
+        setTimeout(() => { suppressNextClick = false; }, 120);
+      }
+
+      function clearHighlight() {
+        if (!svg) return;
+        svg.querySelectorAll("[data-device], [data-source][data-target]").forEach((item) => {
+          item.classList.remove("is-selected", "is-highlighted", "is-dimmed");
+        });
+      }
+
+      function highlightTarget(target) {
+        if (!svg) return;
+        const node = target && typeof target.closest === "function" ? target.closest("[data-device]") : null;
+        if (!node || !svg.contains(node)) {
+          clearHighlight();
+          return;
+        }
+        const selectedDevice = node.dataset.device;
+        const highlightedDevices = new Set([selectedDevice]);
+        svg.querySelectorAll("[data-source][data-target]").forEach((link) => {
+          if (link.dataset.source === selectedDevice) highlightedDevices.add(link.dataset.target);
+          if (link.dataset.target === selectedDevice) highlightedDevices.add(link.dataset.source);
+        });
+        svg.querySelectorAll("[data-device]").forEach((item) => {
+          const highlighted = highlightedDevices.has(item.dataset.device);
+          item.classList.toggle("is-selected", highlighted);
+          item.classList.toggle("is-dimmed", !highlighted);
+        });
+        svg.querySelectorAll("[data-source][data-target]").forEach((link) => {
+          const connected = link.dataset.source === selectedDevice || link.dataset.target === selectedDevice;
+          link.classList.toggle("is-highlighted", connected);
+          link.classList.toggle("is-dimmed", !connected);
+        });
+      }
+
+      function handleHighlightClick(event) {
+        if (suppressNextClick) {
+          suppressNextClick = false;
+          return;
+        }
+        highlightTarget(event.target);
       }
 
       function exportClone() {
@@ -705,6 +808,7 @@ function openDiagramWindow() {
         event.preventDefault();
         setZoom(zoom + (event.deltaY < 0 ? zoomStep : -zoomStep), { x: event.clientX, y: event.clientY });
       }, { passive: false });
+      viewer.addEventListener("click", handleHighlightClick);
       viewer.addEventListener("pointerdown", startDrag);
       window.addEventListener("pointermove", moveDrag);
       window.addEventListener("pointerup", endDrag);

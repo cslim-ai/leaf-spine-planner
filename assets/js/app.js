@@ -82,6 +82,7 @@ let currentLocale = resolveInitialLocale();
 let diagramZoom = 1;
 let diagramPan = { x: 0, y: 0 };
 let dragState = null;
+let suppressNextDiagramClick = false;
 let diagramViewMode = "full";
 const MIN_DIAGRAM_ZOOM = 0.1;
 const MAX_DIAGRAM_ZOOM = 10;
@@ -185,6 +186,7 @@ outputs.diagram.addEventListener("wheel", (event) => {
     y: event.clientY,
   });
 }, { passive: false });
+outputs.diagram.addEventListener("click", handleDiagramHighlightClick);
 if (window.PointerEvent) {
   outputs.diagram.addEventListener("pointerdown", startDiagramDrag);
   window.addEventListener("pointermove", moveDiagramDrag);
@@ -551,7 +553,8 @@ function render(result) {
     outputs.oversubRatio.textContent = "-";
     outputs.totalSwitches.textContent = "-";
     outputs.detailList.innerHTML = "";
-    outputs.message.textContent = result.infeasibleReason || tr("results.defaultInfeasibleMessage");
+    outputs.message.textContent = makeInfeasibleMessage(result);
+    outputs.message.classList.add("is-warning");
     outputs.diagram.innerHTML = "";
     outputs.diagramCaption.textContent = "";
     resetDiagramView();
@@ -654,9 +657,36 @@ function render(result) {
   );
   outputs.diagram.innerHTML = makeDiagramForView(result);
   adjustCurrentDiagramLabelBadges();
+  setupDiagramHighlight();
   applyDiagramTransform();
   updateDiagramViewButtons();
   outputs.diagramCaption.textContent = "";
+}
+
+function makeInfeasibleMessage(result) {
+  const reason = result.infeasibleReason || tr("results.defaultInfeasibleMessage");
+  const advice = makeInfeasibleAdvice(result);
+  return advice ? `${reason}\n\n${tr("messages.recommendedAction")} ${advice}` : reason;
+}
+
+function makeInfeasibleAdvice({ input, infeasibleReason = "" }) {
+  const reason = String(infeasibleReason);
+  if (input?.useMultiPlanar && input.serverLinkSpeed < 200) {
+    return tr("messages.infeasibleAdvice.multiPlanarSpeed");
+  }
+  if (reason.includes("Leaf")) {
+    return tr("messages.infeasibleAdvice.leafCapacity");
+  }
+  if (reason.includes("Spine") || reason.includes("full") || reason.includes("전체 연결")) {
+    return tr("messages.infeasibleAdvice.spineCapacity");
+  }
+  if (reason.includes("대역폭") || reason.toLowerCase().includes("bandwidth")) {
+    return tr("messages.infeasibleAdvice.bandwidth");
+  }
+  if (input?.useCustomSwitchCounts) {
+    return tr("messages.infeasibleAdvice.customSwitch");
+  }
+  return tr("messages.infeasibleAdvice.general");
 }
 
 function isWarningDetail(label, value) {
@@ -686,6 +716,7 @@ function setDiagramViewMode(mode) {
   if (currentResult) {
     outputs.diagram.innerHTML = makeDiagramForView(currentResult);
     adjustCurrentDiagramLabelBadges();
+    setupDiagramHighlight();
   }
   resetDiagramView();
   updateDiagramViewButtons();
@@ -699,6 +730,58 @@ function adjustCurrentDiagramLabelBadges() {
       LeafSpineDiagram.adjustLabelBadges(outputs.diagram.querySelector("svg"));
     });
   }
+}
+
+function setupDiagramHighlight() {
+  const svg = outputs.diagram.querySelector("svg");
+  if (!svg) return;
+  svg.querySelectorAll("[data-device], [data-source][data-target]").forEach((item) => {
+    item.classList.remove("is-selected", "is-highlighted", "is-dimmed");
+  });
+}
+
+function handleDiagramHighlightClick(event) {
+  if (suppressNextDiagramClick) {
+    suppressNextDiagramClick = false;
+    return;
+  }
+  const svg = outputs.diagram.querySelector("svg");
+  if (!svg) return;
+  highlightDiagramTarget(svg, event.target);
+}
+
+function highlightDiagramTarget(svg, target) {
+  const node = target?.closest?.("[data-device]");
+  if (!node || !svg.contains(node)) {
+    clearDiagramHighlight(svg);
+    return;
+  }
+  highlightDiagramDevice(svg, node.dataset.device);
+}
+
+function highlightDiagramDevice(svg, selectedDevice) {
+  const highlightedDevices = new Set([selectedDevice]);
+  svg.querySelectorAll("[data-source][data-target]").forEach((link) => {
+    if (link.dataset.source === selectedDevice) highlightedDevices.add(link.dataset.target);
+    if (link.dataset.target === selectedDevice) highlightedDevices.add(link.dataset.source);
+  });
+  svg.querySelectorAll("[data-device]").forEach((item) => {
+    const highlighted = highlightedDevices.has(item.dataset.device);
+    item.classList.toggle("is-selected", highlighted);
+    item.classList.toggle("is-dimmed", !highlighted);
+  });
+  svg.querySelectorAll("[data-source][data-target]").forEach((link) => {
+    const connected = link.dataset.source === selectedDevice || link.dataset.target === selectedDevice;
+    link.classList.toggle("is-highlighted", connected);
+    link.classList.toggle("is-dimmed", !connected);
+  });
+}
+
+function clearDiagramHighlight(svg = outputs.diagram.querySelector("svg")) {
+  if (!svg) return;
+  svg.querySelectorAll("[data-device], [data-source][data-target]").forEach((item) => {
+    item.classList.remove("is-selected", "is-highlighted", "is-dimmed");
+  });
 }
 
 function makeDiagramForView(result) {
@@ -756,8 +839,7 @@ function fitDiagramView() {
   const viewport = getDiagramViewportSize(svg);
   const bounds = getDiagramContentBounds(svg);
   const targetWidth = Math.max(1, bounds.width + DIAGRAM_FIT_PADDING * 2);
-  const targetHeight = Math.max(1, bounds.height + DIAGRAM_FIT_PADDING * 2);
-  diagramZoom = Math.min(MAX_DIAGRAM_ZOOM, Math.max(MIN_DIAGRAM_ZOOM, Math.min(viewport.width / targetWidth, viewport.height / targetHeight)));
+  diagramZoom = Math.min(MAX_DIAGRAM_ZOOM, Math.max(MIN_DIAGRAM_ZOOM, viewport.width / targetWidth));
   const viewBox = getDiagramViewBox(svg);
   diagramPan = {
     x: bounds.x + bounds.width / 2 - viewBox.width / 2,
@@ -790,6 +872,8 @@ function startDiagramDrag(event) {
     startY: event.clientY,
     panX: diagramPan.x,
     panY: diagramPan.y,
+    target: event.target,
+    moved: false,
   };
 }
 
@@ -797,17 +881,32 @@ function moveDiagramDrag(event) {
   if (!dragState) return;
   if (dragState.pointerId !== undefined && event.pointerId !== dragState.pointerId) return;
   const svg = outputs.diagram.querySelector("svg");
+  const deltaX = event.clientX - dragState.startX;
+  const deltaY = event.clientY - dragState.startY;
+  if (Math.hypot(deltaX, deltaY) > 3) dragState.moved = true;
   const scale = getSvgUnitsPerScreenPixel(svg);
-  diagramPan.x = dragState.panX - (event.clientX - dragState.startX) * scale.x;
-  diagramPan.y = dragState.panY - (event.clientY - dragState.startY) * scale.y;
+  diagramPan.x = dragState.panX - deltaX * scale.x;
+  diagramPan.y = dragState.panY - deltaY * scale.y;
   applyDiagramTransform();
 }
 
 function endDiagramDrag(event) {
   if (!dragState) return;
   if (dragState.pointerId !== undefined && event.pointerId !== dragState.pointerId) return;
+  const finishedDragState = dragState;
   outputs.diagram.classList.remove("is-dragging");
   dragState = null;
+  if (finishedDragState.moved) {
+    suppressNextDiagramClick = true;
+    setTimeout(() => { suppressNextDiagramClick = false; }, 120);
+    return;
+  }
+  const svg = outputs.diagram.querySelector("svg");
+  if (svg) {
+    highlightDiagramTarget(svg, finishedDragState.target);
+    suppressNextDiagramClick = true;
+    setTimeout(() => { suppressNextDiagramClick = false; }, 120);
+  }
 }
 
 function clampDiagramPan(svg) {
@@ -857,6 +956,8 @@ function getDiagramViewportSize(svg) {
 function getDiagramContentBounds(svg) {
   const baseWidth = Number(svg.dataset.baseWidth) || DEFAULT_DIAGRAM_VIEW_WIDTH;
   const baseHeight = Number(svg.dataset.baseHeight) || DEFAULT_DIAGRAM_VIEW_HEIGHT;
+  const elementBounds = getDiagramElementBounds(svg);
+  if (elementBounds) return elementBounds;
   try {
     const bbox = svg.getBBox();
     if (bbox.width > 0 && bbox.height > 0) return bbox;
@@ -864,6 +965,30 @@ function getDiagramContentBounds(svg) {
     // Some browser states can reject getBBox before the SVG is fully laid out.
   }
   return { x: 0, y: 0, width: baseWidth, height: baseHeight };
+}
+
+function getDiagramElementBounds(svg) {
+  const boxes = [...svg.querySelectorAll(".node, .link, .uplink")]
+    .map((element) => {
+      try {
+        const box = element.getBBox();
+        return box.width > 0 && box.height > 0 ? box : null;
+      } catch (error) {
+        return null;
+      }
+    })
+    .filter(Boolean);
+  if (!boxes.length) return null;
+  const minX = Math.min(...boxes.map((box) => box.x));
+  const minY = Math.min(...boxes.map((box) => box.y));
+  const maxX = Math.max(...boxes.map((box) => box.x + box.width));
+  const maxY = Math.max(...boxes.map((box) => box.y + box.height));
+  return {
+    x: minX,
+    y: minY,
+    width: maxX - minX,
+    height: maxY - minY,
+  };
 }
 
 function getCenteredDiagramPan(svg) {

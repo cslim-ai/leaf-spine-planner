@@ -846,12 +846,14 @@ svg {
   stroke: #5f8f73;
   stroke-width: 1.35;
   vector-effect: non-scaling-stroke;
+  transition: opacity 0.14s ease, stroke-width 0.14s ease;
 }
 
 .uplink {
   stroke: #8d6b54;
   stroke-width: 1.45;
   vector-effect: non-scaling-stroke;
+  transition: opacity 0.14s ease, stroke-width 0.14s ease;
 }
 
 .node rect,
@@ -879,6 +881,28 @@ svg {
   fill: #0f172a;
   font-size: 10.5px;
   font-weight: 450;
+}
+
+.diagram [data-device] {
+  cursor: pointer;
+}
+
+.diagram .is-dimmed {
+  opacity: 0.2;
+}
+
+.diagram [data-device].is-selected {
+  opacity: 1;
+}
+
+.diagram [data-device].is-selected .node-label-bg {
+  stroke: #2563eb;
+  stroke-width: 1.6;
+}
+
+.diagram [data-source][data-target].is-highlighted {
+  opacity: 1;
+  stroke-width: 2;
 }
 
 .ellipsis-node rect {
