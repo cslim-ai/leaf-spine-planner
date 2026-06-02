@@ -204,6 +204,7 @@ const LeafSpineI18n = (() => {
         columns: {
           index: "#",
           segment: "구간",
+          pod: "Pod",
           plane: "Plane",
           fromDevice: "출발 장비",
           fromPort: "출발 포트",
@@ -211,16 +212,6 @@ const LeafSpineI18n = (() => {
           toPort: "도착 포트",
           speed: "링크 속도",
           group: "그룹",
-        },
-        filters: {
-          title: "포트맵 필터",
-          search: "전체 검색",
-          allSegments: "전체 구간",
-          pod: "Pod/Plane",
-          node: "Node",
-          leaf: "Leaf",
-          spine: "Spine",
-          count: "{visible}/{total}개 행 표시",
         },
         segments: {
           nodeLeaf: "Node-Leaf",
@@ -430,6 +421,7 @@ const LeafSpineI18n = (() => {
         columns: {
           index: "#",
           segment: "Segment",
+          pod: "Pod",
           plane: "Plane",
           fromDevice: "From Device",
           fromPort: "From Port",
@@ -437,16 +429,6 @@ const LeafSpineI18n = (() => {
           toPort: "To Port",
           speed: "Link Speed",
           group: "Group",
-        },
-        filters: {
-          title: "Port Map Filters",
-          search: "Search all",
-          allSegments: "All Segments",
-          pod: "Pod/Plane",
-          node: "Node",
-          leaf: "Leaf",
-          spine: "Spine",
-          count: "Showing {visible}/{total} rows",
         },
         segments: {
           nodeLeaf: "Node-Leaf",

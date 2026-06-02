@@ -33,10 +33,11 @@ function getPortMapRows(portMap) {
 }
 
 function portMapHeaders() {
-  if (typeof tr !== "function") return ["#", "구간", "Plane", "출발 장비", "출발 포트", "도착 장비", "도착 포트", "속도", "그룹"];
+  if (typeof tr !== "function") return ["#", "Segment", "Pod", "Plane", "From Device", "From Port", "To Device", "To Port", "Link Speed", "Group"];
   return [
     tr("portMap.columns.index"),
     tr("portMap.columns.segment"),
+    tr("portMap.columns.pod"),
     tr("portMap.columns.plane"),
     tr("portMap.columns.fromDevice"),
     tr("portMap.columns.fromPort"),
@@ -56,6 +57,7 @@ function portMapRowValues(row, index) {
     index + 1,
     row.section,
     row.pod,
+    row.plane,
     row.sourceDevice,
     row.sourcePort,
     row.targetDevice,
@@ -96,7 +98,7 @@ function buildPortMapXlsx(portMap) {
 function xlsxSheetXml(portMap) {
   const rows = [portMapHeaders(), ...getPortMapRows(portMap).map((row, index) => portMapRowValues(row, index))];
   const sourceRows = [null, ...getPortMapRows(portMap)];
-  const colWidths = [7, 14, 11, 22, 16, 24, 16, 14, 20];
+  const colWidths = [7, 14, 11, 11, 22, 16, 24, 16, 14, 20];
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
   <sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>
@@ -104,7 +106,7 @@ function xlsxSheetXml(portMap) {
   <sheetData>
     ${rows.map((values, rowIndex) => `<row r="${rowIndex + 1}">${values.map((value, colIndex) => xlsxCell(value, rowIndex, colIndex, sourceRows[rowIndex])).join("")}</row>`).join("")}
   </sheetData>
-  <autoFilter ref="A1:I${rows.length}"/>
+  <autoFilter ref="A1:J${rows.length}"/>
 </worksheet>`;
 }
 
@@ -112,7 +114,8 @@ function xlsxCell(value, rowIndex, colIndex, sourceRow) {
   const ref = `${xlsxColumnName(colIndex)}${rowIndex + 1}`;
   let style = rowIndex === 0 ? 1 : 0;
   if (sourceRow && colIndex === 1) style = sourceRow.section === "Node-Leaf" ? 2 : 3;
-  if (sourceRow && colIndex === 2 && sourceRow.pod !== "-") style = 4 + ((sourceRow.podIndex || 0) % 6);
+  if (sourceRow && colIndex === 2 && sourceRow.pod !== "-") style = 4 + ((sourceRow.podToneIndex || 0) % 6);
+  if (sourceRow && colIndex === 3 && sourceRow.plane !== "-") style = 4 + ((sourceRow.podToneIndex || 0) % 6);
   return `<c r="${ref}" t="inlineStr" s="${style}"><is><t>${escapeXml(value)}</t></is></c>`;
 }
 
@@ -269,13 +272,14 @@ function addPortMapPptTable(slide, rows, startIndex, y) {
     ...rows.map((row, rowIndex) => portMapRowValues(row, startIndex + rowIndex).map((value, cellIndex) => {
       const isSection = cellIndex === 1;
       const isPod = cellIndex === 2 && row.pod !== "-";
+      const isPlane = cellIndex === 3 && row.plane !== "-";
       const sectionColor = row.section === "Node-Leaf" ? "1D4ED8" : "8A4B12";
-      const tone = isPod ? podTone(row.podIndex || 0) : null;
+      const tone = (isPod || isPlane) ? podTone(row.podToneIndex || 0) : null;
       return {
         text: String(value),
         options: {
-          bold: isSection || isPod,
-          color: isSection ? sectionColor : (isPod ? tone.ppt : "0F172A"),
+          bold: isSection || isPod || isPlane,
+          color: isSection ? sectionColor : ((isPod || isPlane) ? tone.ppt : "0F172A"),
         },
       };
     })),
@@ -284,7 +288,7 @@ function addPortMapPptTable(slide, rows, startIndex, y) {
     x: 0.35,
     y,
     w: 12.15,
-    colW: [0.55, 1.35, 0.85, 1.8, 1.25, 2.05, 1.25, 1.05, 2.1],
+    colW: [0.5, 1.2, 0.75, 0.75, 1.65, 1.15, 1.85, 1.15, 0.95, 1.95],
     rowH: 0.36,
     fontFace: "Arial",
     fontSize: 9,
@@ -328,7 +332,7 @@ function portMapSlideXml(portMap, chunk, pageNumber, pageCount) {
 }
 
 function portMapTableXml(id, rows, startIndex, xIn, yIn) {
-  const colW = [0.55, 1.35, 0.85, 1.8, 1.25, 2.05, 1.25, 1.05, 2.1];
+  const colW = [0.5, 1.2, 0.75, 0.75, 1.65, 1.15, 1.85, 1.15, 0.95, 1.95];
   const rowH = 0.25;
   const tableRows = [
     { type: "header", values: portMapHeaders() },
@@ -365,7 +369,12 @@ function portMapTableCellXml(row, value, cellIndex) {
     color = row.source.section === "Node-Leaf" ? "1D4ED8" : "8A4B12";
     bold = true;
   } else if (cellIndex === 2 && row.source.pod !== "-") {
-    const tone = podTone(row.source.podIndex || 0);
+    const tone = podTone(row.source.podToneIndex || 0);
+    fill = tone.fill;
+    color = tone.ppt;
+    bold = true;
+  } else if (cellIndex === 3 && row.source.plane !== "-") {
+    const tone = podTone(row.source.podToneIndex || 0);
     fill = tone.fill;
     color = tone.ppt;
     bold = true;
