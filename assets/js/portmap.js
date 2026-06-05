@@ -431,8 +431,8 @@ function makePortMapHtml(portMap) {
             <tr>
               <th>#</th>
               <th>${escapeXml(tr("portMap.columns.segment"))}</th>
-              <th>${escapeXml(tr("portMap.columns.pod"))}</th>
               <th>${escapeXml(tr("portMap.columns.plane"))}</th>
+              <th>${escapeXml(tr("portMap.columns.pod"))}</th>
               <th>${escapeXml(tr("portMap.columns.fromDevice"))}</th>
               <th>${escapeXml(tr("portMap.columns.fromPort"))}</th>
               <th>${escapeXml(tr("portMap.columns.toDevice"))}</th>
@@ -480,8 +480,8 @@ function makePortMapHtml(portMap) {
           const tone = podTones[(row.podToneIndex || 0) % podTones.length];
           appendCell(tr, row.originalIndex + 1);
           appendCell(tr, row.section, "section " + sectionClass(row.section));
-          appendCell(tr, row.pod, "pod-cell", row.pod === "-" ? "" : "color:" + tone.text + "; background:" + tone.bg + ";");
           appendCell(tr, row.plane, "pod-cell", row.plane === "-" ? "" : "color:" + tone.text + "; background:" + tone.bg + ";");
+          appendCell(tr, row.pod, "pod-cell", row.pod === "-" ? "" : "color:" + tone.text + "; background:" + tone.bg + ";");
           appendCell(tr, row.sourceDevice);
           appendCell(tr, row.sourcePort);
           appendCell(tr, row.targetDevice);

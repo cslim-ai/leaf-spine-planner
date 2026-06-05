@@ -76,17 +76,24 @@ body {
   min-height: 100vh;
   background: var(--bg);
   color: var(--ink);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .app {
   position: relative;
-  width: 100%;
-  max-width: 1320px;
+  width: 1320px;
+  max-width: none;
   margin: 0;
   height: 100vh;
   padding: 20px 20px 74px;
   overflow: hidden;
+}
+
+@media (max-width: 1319px) {
+  .app {
+    height: calc(100vh - 17px);
+  }
 }
 
 .app-footer {
@@ -196,6 +203,10 @@ body {
   letter-spacing: 0;
   line-height: 1.1;
   white-space: nowrap;
+}
+
+.title-refresh {
+  cursor: pointer;
 }
 
 .title-meta-row {
@@ -1030,76 +1041,6 @@ svg {
   fill: var(--muted);
   font-size: 14px;
   font-weight: 800;
-}
-
-@media (max-width: 980px) {
-  .app {
-    height: auto;
-    min-height: 100vh;
-    padding: 14px 14px 88px;
-    overflow: visible;
-  }
-
-  .app-footer {
-    right: 14px;
-    bottom: 20px;
-    left: 14px;
-    gap: 12px;
-  }
-
-  .app-footer-notice {
-    white-space: normal;
-  }
-
-  .workspace,
-  .sidebar,
-  .summary-grid {
-    grid-template-columns: 1fr;
-    height: auto;
-  }
-
-  .sidebar {
-    margin-top: 0;
-  }
-
-  .summary-grid {
-    position: static;
-    padding-bottom: 0;
-  }
-
-  .sidebar-scroll,
-  .inputs,
-  .results {
-    max-height: none;
-    overflow: visible;
-    padding-right: 0;
-  }
-
-  .sidebar-scroll {
-    display: contents;
-  }
-
-  .results-scroll {
-    display: contents;
-  }
-
-  .results-scroll {
-    overflow: visible;
-    padding-right: 0;
-  }
-
-  .diagram {
-    height: 520px;
-  }
-
-  dl {
-    grid-template-columns: 1fr;
-    gap: 4px;
-  }
-
-  dd {
-    margin-bottom: 8px;
-  }
 }
 
 @media print {

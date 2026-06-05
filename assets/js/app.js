@@ -72,6 +72,7 @@ const outputs = {
   importInputsFile: document.querySelector("#importInputsFile"),
   resetInputs: document.querySelector("#resetInputs"),
   languageSelect: document.querySelector("#languageSelect"),
+  titleRefresh: document.querySelector(".title-refresh"),
 };
 
 const I18N = typeof LeafSpineI18n !== "undefined" ? LeafSpineI18n : null;
@@ -163,6 +164,12 @@ setupExportMenu(outputs.reportExportMenu, outputs.exportPdf, (format) => LeafSpi
 setupExportMenu(outputs.inputTransferMenu, outputs.importExportInputs, handleInputTransferAction);
 outputs.importInputsFile.addEventListener("change", handleImportInputsFile);
 outputs.resetInputs.addEventListener("click", () => resetInputsToDefaults());
+outputs.titleRefresh?.addEventListener("click", () => window.location.reload());
+outputs.titleRefresh?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  event.preventDefault();
+  window.location.reload();
+});
 outputs.languageSelect?.addEventListener("change", () => setLocale(outputs.languageSelect.value));
 document.addEventListener("click", () => closeExportMenus());
 window.addEventListener("message", (event) => {
