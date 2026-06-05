@@ -23,8 +23,10 @@ function getDiagramGeometry({ input, best }) {
   const serverH = 62;
   const serverSlotWidth = Math.max(86, serverW + 14);
   const leafSlotWidth = Math.max(120, switchW + 12);
+  const spineGap = 151.2;
+  const spineRowWidth = shownSpines > 0 ? (shownSpines - 1) * spineGap + switchW : 0;
   const serverSlots = Math.max(shownServers, shownLeafs);
-  const width = Math.max(920, labelGutter + serverSlots * Math.max(serverSlotWidth, leafSlotWidth) + 150);
+  const width = Math.max(920, labelGutter + Math.max(serverSlots * Math.max(serverSlotWidth, leafSlotWidth), spineRowWidth) + 150);
   const height = 500;
   const contentLeft = labelGutter + DIAGRAM_CONTENT_OFFSET;
   const contentRight = width - 48;
@@ -32,7 +34,7 @@ function getDiagramGeometry({ input, best }) {
   const spineY = 58;
   const leafY = 190;
   const serverY = 360;
-  const spineXs = distribute(center, shownSpines, 126);
+  const spineXs = distribute(center, shownSpines, spineGap);
   const leafXs = distribute(center, shownLeafs, Math.max(120, Math.min(160, width / Math.max(shownLeafs, 1) * 0.8)));
   const serverXs = distribute(center, shownServers, Math.max(serverSlotWidth, Math.min(104, width / Math.max(shownServers, 1) * 0.8)));
   const podCount = best.podCount || 1;
