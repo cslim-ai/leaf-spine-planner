@@ -35,8 +35,8 @@ vm.runInContext(source, context);
 
 {
   const headers = context.portMapHeaders();
-  assertEqual(headers[2], "Plane", "Plane column should be before Pod");
-  assertEqual(headers[3], "Pod", "Pod column should follow Plane");
+  assertEqual(headers[2], "Pod", "Pod column should be before Plane");
+  assertEqual(headers[3], "Plane", "Plane column should follow Pod");
 }
 
 {
@@ -52,8 +52,8 @@ vm.runInContext(source, context);
     group: "NIC 1",
   }, 0);
 
-  assertEqual(values[2], "Plane 1", "row values should put Plane before Pod");
-  assertEqual(values[3], "Pod 2", "row values should put Pod after Plane");
+  assertEqual(values[2], "Pod 2", "row values should put Pod before Plane");
+  assertEqual(values[3], "Plane 1", "row values should put Plane after Pod");
 }
 
 console.log("port map column tests passed");

@@ -169,12 +169,12 @@ function fabricGroupParts(groupIndex, podCount, input = null, best = null) {
 }
 
 function leafLabel(leafIndex, perPodLeafs, podCount, input = null, best = null) {
-  if (podCount > 1) return `${fabricGroupLabel(Math.floor(leafIndex / perPodLeafs), input, best)} Leaf ${(leafIndex % perPodLeafs) + 1}`;
+  if (podCount > 1) return `${fabricGroupLabel(Math.floor(leafIndex / perPodLeafs), input, best)} - Leaf ${(leafIndex % perPodLeafs) + 1}`;
   return `Leaf ${leafIndex + 1}`;
 }
 
 function spineLabel(spineIndex, perPodSpines, podCount, input = null, best = null) {
-  if (podCount > 1) return `${fabricGroupLabel(Math.floor(spineIndex / perPodSpines), input, best)} Spine ${(spineIndex % perPodSpines) + 1}`;
+  if (podCount > 1) return `${fabricGroupLabel(Math.floor(spineIndex / perPodSpines), input, best)} - Spine ${(spineIndex % perPodSpines) + 1}`;
   return `Spine ${spineIndex + 1}`;
 }
 
@@ -183,7 +183,7 @@ function fabricGroupLabel(groupIndex, input = null, best = null) {
   const sourceBest = best || currentResult?.best || {};
   const planeCount = sourceBest.planeCount || (sourceInput.useMultiPlanar ? 2 : 1);
   if (sourceInput.useMultiPods && sourceInput.useMultiPlanar) {
-    return `Pod ${Math.floor(groupIndex / planeCount) + 1} Plane ${(groupIndex % planeCount) + 1}`;
+    return `Pod ${Math.floor(groupIndex / planeCount) + 1} - Plane ${(groupIndex % planeCount) + 1}`;
   }
   if (sourceInput.useMultiPods) return `Pod ${groupIndex + 1}`;
   if (sourceInput.useMultiPlanar) return `Plane ${groupIndex + 1}`;
@@ -386,7 +386,9 @@ function makePortMapHtml(portMap) {
         padding: 9px 10px;
         border-bottom: 1px solid #e2e8f0;
         white-space: nowrap;
-        font-size: 14px;
+      }
+      tbody td {
+        font-size: 13px;
       }
       tbody tr:nth-child(even) td { background: #f8fbff; }
       tbody tr:hover td { background: #eff6ff; }
@@ -431,8 +433,8 @@ function makePortMapHtml(portMap) {
             <tr>
               <th>#</th>
               <th>${escapeXml(tr("portMap.columns.segment"))}</th>
-              <th>${escapeXml(tr("portMap.columns.plane"))}</th>
               <th>${escapeXml(tr("portMap.columns.pod"))}</th>
+              <th>${escapeXml(tr("portMap.columns.plane"))}</th>
               <th>${escapeXml(tr("portMap.columns.fromDevice"))}</th>
               <th>${escapeXml(tr("portMap.columns.fromPort"))}</th>
               <th>${escapeXml(tr("portMap.columns.toDevice"))}</th>
@@ -477,11 +479,12 @@ function makePortMapHtml(portMap) {
         for (let index = start; index < end; index += 1) {
           const row = portMapRows[index];
           const tr = document.createElement("tr");
-          const tone = podTones[(row.podToneIndex || 0) % podTones.length];
+          const podTone = podTones[(row.podToneIndex || 0) % podTones.length];
+          const planeTone = podTones[((row.planeIndex || 0) + 3) % podTones.length];
           appendCell(tr, row.originalIndex + 1);
           appendCell(tr, row.section, "section " + sectionClass(row.section));
-          appendCell(tr, row.plane, "pod-cell", row.plane === "-" ? "" : "color:" + tone.text + "; background:" + tone.bg + ";");
-          appendCell(tr, row.pod, "pod-cell", row.pod === "-" ? "" : "color:" + tone.text + "; background:" + tone.bg + ";");
+          appendCell(tr, row.pod, "pod-cell", row.pod === "-" ? "" : "color:" + podTone.text + "; background:" + podTone.bg + ";");
+          appendCell(tr, row.plane, "pod-cell", row.plane === "-" ? "" : "color:" + planeTone.text + "; background:" + planeTone.bg + ";");
           appendCell(tr, row.sourceDevice);
           appendCell(tr, row.sourcePort);
           appendCell(tr, row.targetDevice);
