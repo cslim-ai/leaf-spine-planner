@@ -27,7 +27,6 @@ function getDiagramGeometry({ input, best }) {
   const spineRowWidth = shownSpines > 0 ? (shownSpines - 1) * spineGap + switchW : 0;
   const serverSlots = Math.max(shownServers, shownLeafs);
   const width = Math.max(920, labelGutter + Math.max(serverSlots * Math.max(serverSlotWidth, leafSlotWidth), spineRowWidth) + 150);
-  const height = 500;
   const contentLeft = labelGutter + DIAGRAM_CONTENT_OFFSET;
   const contentRight = width - 48;
   const center = (contentLeft + contentRight) / 2;
@@ -107,15 +106,16 @@ function getDiagramGeometry({ input, best }) {
     servers.push({ x: serverX, y: serverY, w: serverW, h: serverH, number: serverIndex + 1, nicCount: input.serverNicPorts, label, device: label, deviceKey: `node-${serverIndex}`, ports });
   });
 
-  return normalizeGeometryHorizontal({
+  const geometry = normalizeGeometryHorizontal({
     width,
-    height,
+    height: 500,
     labels: [],
     lines,
     switches,
     servers,
     labelGutter,
   });
+  return applyFullDiagramVerticalSpacing(geometry, { switchH, serverH });
 }
 
 function getPptDiagramGeometry({ input, best }) {
@@ -243,6 +243,37 @@ function makePptRowPositions(count, perRow, center, startY, rowGap, itemGap) {
     });
   }
   return positions;
+}
+
+function applyFullDiagramVerticalSpacing(geometry, { switchH, serverH }) {
+  const spineY = 58;
+  const widthGrowth = Math.max(0, geometry.width - DEFAULT_DIAGRAM_VIEW_WIDTH);
+  const rowSpan = 302 + widthGrowth * 0.25;
+  const leafY = spineY + rowSpan * (132 / 302);
+  const serverY = spineY + rowSpan;
+
+  geometry.switches.forEach((item) => {
+    if (item.kind === "spine") item.y = spineY;
+    if (item.kind === "leaf") item.y = leafY;
+  });
+  geometry.servers.forEach((item) => {
+    item.y = serverY;
+    (item.ports || []).forEach((port) => {
+      port.y = serverY - serverH / 2 + 7;
+    });
+  });
+  geometry.lines.forEach((line) => {
+    if (line.kind === "uplink") {
+      line.y1 = leafY - switchH / 2;
+      line.y2 = spineY + switchH / 2;
+    }
+    if (line.kind === "link") {
+      line.y1 = serverY - serverH / 2;
+      line.y2 = leafY + switchH / 2;
+    }
+  });
+  geometry.height = Math.max(500, Math.round(serverY + serverH / 2 + 58));
+  return geometry;
 }
 
 function getSummaryDiagramGeometry({ input, best }) {

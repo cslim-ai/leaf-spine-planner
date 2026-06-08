@@ -85,6 +85,20 @@ const baseBest = {
 }
 
 {
+  const input = { ...baseInput, serverCount: 128, serverNicPorts: 8, useMultiPods: false, useMultiPlanar: false, podServerCount: 128 };
+  const best = { ...baseBest, spines: 16, leafCount: 32, podCount: 1, multiPodCount: 1, podServerCount: 128, perPodLeafs: 32, perPodSpines: 16 };
+  const geometry = context.getDiagramGeometry({ input, best });
+  const spine = geometry.switches.find((item) => item.kind === "spine");
+  const leaf = geometry.switches.find((item) => item.kind === "leaf");
+  const node = geometry.servers[0];
+  const expectedGrowth = Math.max(0, geometry.width - 920) * 0.25;
+  const expectedRowSpan = 302 + expectedGrowth;
+  assertEqual(Math.round(node.y - spine.y), Math.round(expectedRowSpan), "full diagram row span should grow by 20% of width growth");
+  assertEqual(leaf.y > 190, true, "full diagram Leaf row should move down when width grows");
+  assertEqual(node.y > 360, true, "full diagram Node row should move down when width grows");
+}
+
+{
   const input = { ...baseInput, useMultiPods: false, podServerCount: 16 };
   const best = { ...baseBest, podCount: 1, multiPodCount: 1, podServerCount: 16, perPodLeafs: 4, perPodSpines: 4 };
   const geometry = context.getDiagramGeometry({ input, best });
